@@ -12,6 +12,10 @@ class Motor_Handler : public Handler {
     void requestPermanentVoltageUpdate();
   private:
     void requestPermanentUpdate(uint16_t can_id, uint8_t msg_type, uint8_t time);
+    void handleVoltageMessage(Frame& message);
+    void handleSpeedMessage(Frame& message);
+    void handleCurrentMessage(Frame& message);
+    void handleWarningMessage(Frame& message);
 };
 #endif // MOTOR_HANDLER_H
 

@@ -11,8 +11,6 @@ const int PORT_BRAKE = 3;
 
 const float THROTTLE_SCALING_FACTOR = 0.2;
 
-const uint8_t BRAKE_PUSHED_CUTOFF = 50;
-
 const uint8_t TORQUE_PREFIX = 144; //0x90
 
 void Can_Node_Handler::brakeLightOn() {
@@ -30,20 +28,14 @@ void Can_Node_Handler::begin() {
 }
 
 void Can_Node_Handler::handleMessage(Frame& message) {
-  // Enable-only task
-  if(!Dispatcher().isEnabled()) {
-    return;
-  }
-
   // Only execute if id matches
   if(message.id != CAN_NODE_ID) {
     return;
   }
 
-  uint8_t analogThrottle;
-  uint8_t analogBrake;
+  // Handle throttle messages
   bool plausible = true;
-
+  uint8_t analogThrottle;
   if (isPlausible(message.body[STARBOARD_THROTTLE], message.body[PORT_THROTTLE])) {
     analogThrottle = min(
       message.body[STARBOARD_THROTTLE],
@@ -54,28 +46,21 @@ void Can_Node_Handler::handleMessage(Frame& message) {
     analogThrottle = 0;
     plausible = false;
   }
+  Store().logAnalogThrottle(analogThrottle);
 
-  if (isPlausible(message.body[STARBOARD_BRAKE], message.body[PORT_BRAKE])) {
-    analogBrake = max(
-      message.body[STARBOARD_BRAKE],
-      message.body[PORT_BRAKE]
-    );
-  }
-  else {
-    analogBrake = 0;
-    plausible = false;
-  }
-
-  // Brake light should operate regardless of plausibility
+  // Handle brake messages
+  uint8_t analogBrake = message.body[STARBOARD_BRAKE];
   if(analogBrake < BRAKE_PUSHED_CUTOFF) {
     brakeLightOff();
   } else {
     brakeLightOn();
   }
-
-  // So should logging
-  Store().logAnalogThrottle(analogThrottle);
   Store().logAnalogBrake(analogBrake);
+
+  // Don't do torque commands if car is disabled!
+  if(!Dispatcher().isEnabled()) {
+    return;
+  }
 
   // But not torque
   if (!plausible) {

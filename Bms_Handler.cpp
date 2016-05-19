@@ -1,4 +1,5 @@
 #include "Bms_Handler.h"
+#include "Store_Controller.h"
 
 void Bms_Handler::begin() {
   // No initialization needed
@@ -10,6 +11,7 @@ void Bms_Handler::handleMessage(Frame& message) {
       handleSummaryMessage(message);
       break;
     case BMS_FAULT_ID:
+      handleFaultMessage(message);
       break;
     case BMS_VOLTAGE_ID:
       handleVoltageMessage(message);
@@ -19,6 +21,9 @@ void Bms_Handler::handleMessage(Frame& message) {
       break;
     case BMS_TEMP_ID:
       handleTempMessage(message);
+      break;
+    case BMS_SOC_ID:
+      handleSocMessage(message);
       break;
     case BMS_RESISTANCE_ID:
       break;
@@ -64,7 +69,8 @@ void Bms_Handler::logCellMessage(String prefix, unsigned char cell, int32_t read
 
 void Bms_Handler::handleVoltageMessage(Frame& message) {
   uint16_t total_volts = mergeBytes(message.body[1], message.body[0]);
-  logPackMessage("total_voltage", total_volts, "volts");
+  // logPackMessage("total_voltage", total_volts, "volts");
+  Store().logBmsVoltage(total_volts);
   uint16_t min_volts = message.body[2] * 100;
   uint16_t max_volts = message.body[4] * 100;
   logCellMessage("min_voltage", message.body[3], min_volts, "millivolts");
@@ -74,16 +80,23 @@ void Bms_Handler::handleVoltageMessage(Frame& message) {
 void Bms_Handler::handleCurrentMessage(Frame& message) {
   uint16_t total_current = mergeBytes(message.body[1], message.body[0]);
   int16_t signed_current = (int16_t) total_current;
-  logPackMessage("total_current", signed_current, "amps");
+  // logPackMessage("total_current", signed_current, "amps");
+  Store().logBmsCurrent(signed_current);
 }
 
 void Bms_Handler::handleTempMessage(Frame& message) {
   unsigned char temp = message.body[0];
   logPackMessage("total_temp", temp, "degrees");
+  Store().logBmsTemp(temp);
   uint16_t min_temp = message.body[2];
   uint16_t max_temp = message.body[4];
   logCellMessage("min_temp", message.body[3], min_temp, "degrees");
   logCellMessage("max_temp", message.body[5], max_temp, "degrees");
+}
+
+void Bms_Handler::handleSocMessage(Frame& message) {
+  unsigned char soc = message.body[0];
+  Store().logSoc(soc);
 }
 
 void Bms_Handler::handleSummaryMessage(Frame& message) {
@@ -99,4 +112,9 @@ void Bms_Handler::handleSummaryMessage(Frame& message) {
 
   unsigned char SOC = message.body[5];
   logPackMessage("fast_SOC", SOC, "percent");
+}
+
+void Bms_Handler::handleFaultMessage(Frame& message) {
+  Store().logBmsFaults(message.body[5]);
+  Store().logBmsWarnings(message.body[6]);
 }

@@ -36,15 +36,17 @@ void requestVoltage(Task*) {
 }
 Task voltageTask(500, requestVoltage);
 
-void requestPermanentUpdatesLeft(Task*) {
+bool requestPermanentUpdatesLeft(Task*) {
   Dispatcher().requestLeftMotorUpdates();
+  return false;
 }
-Task requestLeftMotorUpdatesTask(50, requestPermanentUpdatesLeft);
+DelayRun requestLeftMotorUpdatesTask(50, requestPermanentUpdatesLeft);
 
-void requestPermanentUpdatesRight(Task*) {
+bool requestPermanentUpdatesRight(Task*) {
   Dispatcher().requestRightMotorUpdates();
+  return false;
 }
-Task requestRightMotorUpdatesTask(100, requestPermanentUpdatesRight);
+DelayRun requestRightMotorUpdatesTask(100, requestPermanentUpdatesRight);
 
 void Dispatch_Controller::requestMotorVoltage() {
   bool leftMotorResponded = Store().readMotorResponse(Store().LeftMotor);
@@ -61,11 +63,9 @@ void Dispatch_Controller::requestMotorVoltage() {
 
 void Dispatch_Controller::requestLeftMotorUpdates() {
   motor_handler.requestPermanentUpdates(LEFT_MOTOR_REQUEST_ID);
-  SoftTimer.remove(&requestLeftMotorUpdatesTask);
 }
 void Dispatch_Controller::requestRightMotorUpdates() {
   motor_handler.requestPermanentUpdates(RIGHT_MOTOR_REQUEST_ID);
-  SoftTimer.remove(&requestRightMotorUpdatesTask);
 }
 
 void Dispatch_Controller::begin() {
@@ -77,6 +77,7 @@ void Dispatch_Controller::begin() {
 
   // Start serial bus
   Serial.begin(115200);
+  Serial2.begin(57600);
 
   // Initialize controllers
   CAN().begin();
@@ -91,7 +92,6 @@ void Dispatch_Controller::begin() {
   // Start event loop
   SoftTimer.add(&stepTask);
   // Start MC requests
-  // TODO decide whether we want this always or only when RTD
   SoftTimer.add(&voltageTask);
 
   //Log to DAQ
@@ -130,11 +130,20 @@ void Dispatch_Controller::disable() {
   RTD().disable();
 
   // Notify listeners of disable
-  Frame disableMessage = { .id=VCU_ID, .body={0}, .len=1};
+  uint8_t data;
+  if (Store().readTractiveVoltage()) {
+    // Send a light-off message
+    data = 0;
+  }
+  else {
+    // Send a light-blink message
+    data = 2;
+  }
+  Frame disableMessage = { .id=VCU_ID, .body={data}, .len=1};
   CAN().write(disableMessage);
 
-  // Log disable to DAQ
-  Serial.println("");
+  // Log disable
+  Serial2.println("");
   Serial.println("VEHICLE_DISABLED");
   Serial.println("");
 }

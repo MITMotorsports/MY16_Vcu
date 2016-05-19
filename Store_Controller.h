@@ -12,6 +12,7 @@ class Store_Controller {
     enum Wheel {FrontRightWheel, FrontLeftWheel, RearRightWheel, RearLeftWheel, WHEEL_LENGTH};
 
     enum MotorController {LeftMotor, RightMotor, MOTOR_CONTROLLER_LENGTH};
+
     void logSpeed(Wheel wheel, int16_t rpm);
     int16_t readSpeed(Wheel wheel);
 
@@ -30,6 +31,12 @@ class Store_Controller {
     void logMotorResponse(MotorController dir);
     bool readMotorResponse(MotorController dir);
 
+    void logTractiveVoltage(bool tractiveVoltageOn);
+    bool readTractiveVoltage();
+
+    void logMotorCurrent(MotorController controller, int16_t current);
+    int16_t readMotorCurrent(MotorController controller);
+
     void logBmsTemp(int16_t temp);
     int16_t readBmsTemp();
 
@@ -42,15 +49,21 @@ class Store_Controller {
     void logSoc(int16_t percent);
     int16_t readSoc();
 
+    void logMotorErrors(MotorController controller, uint16_t error_string);
+    void logBmsFaults(uint8_t fault_string);
+    void logBmsWarnings(uint8_t warning_string);
+
   private:
     Store_Controller();
     static Store_Controller *instance;
 
     int16_t speeds[WHEEL_LENGTH];
     bool responses[MOTOR_CONTROLLER_LENGTH];
+    int16_t currents[MOTOR_CONTROLLER_LENGTH];
     uint8_t analogThrottle;
     uint8_t analogBrake;
     int16_t outputTorque;
+    bool tractiveVoltageOn;
     bool brakeThrottleConflict;
     int16_t bmsTemp;
     int16_t bmsCurrent;
