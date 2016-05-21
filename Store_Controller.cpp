@@ -19,6 +19,7 @@ Store_Controller::Store_Controller()
   , bmsCurrent(SENTINAL)
   , bmsVoltage(SENTINAL)
   , soc(SENTINAL)
+  , throttleScalingFactor(0.2)
 {
   // No initialization required
 }
@@ -318,4 +319,11 @@ void Store_Controller::logBmsWarnings(uint8_t warning_string) {
       logTwo("bms_warning", warning_name);
     }
   }
+}
+
+void Store_Controller::logThrottleScalingFactor(float factor) {
+  throttleScalingFactor = factor;
+}
+float Store_Controller::readThrottleScalingFactor() {
+  return throttleScalingFactor;
 }

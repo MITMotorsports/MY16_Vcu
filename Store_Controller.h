@@ -53,6 +53,9 @@ class Store_Controller {
     void logBmsFaults(uint8_t fault_string);
     void logBmsWarnings(uint8_t warning_string);
 
+    void logThrottleScalingFactor(float factor);
+    float readThrottleScalingFactor();
+
   private:
     Store_Controller();
     static Store_Controller *instance;
@@ -69,6 +72,8 @@ class Store_Controller {
     int16_t bmsCurrent;
     int16_t bmsVoltage;
     int16_t soc;
+
+    float throttleScalingFactor;
 };
 
 Store_Controller& Store();

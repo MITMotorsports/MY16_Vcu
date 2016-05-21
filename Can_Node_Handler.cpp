@@ -78,7 +78,7 @@ void Can_Node_Handler::handleMessage(Frame& message) {
   const int16_t throttleExtended = analogThrottle << 7;
 
   // Apply scaling factor and round
-  const float throttleScaled = ((float)throttleExtended) * THROTTLE_SCALING_FACTOR;
+  const float throttleScaled = ((float)throttleExtended) * Store().readThrottleScalingFactor();
   const int16_t outputTorque = (int16_t) (round(throttleScaled));
 
   // Log and write torque commands

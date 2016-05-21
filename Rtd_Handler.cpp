@@ -5,15 +5,13 @@
 #include "Dispatch_Controller.h"
 #include "Store_Controller.h"
 
-#include "Can_Node_Handler.h"
-
 void Rtd_Handler::begin() {
   //No initialization necessary
 }
 
 void Rtd_Handler::handleMessage(Frame& frame) {
   // Always set this to normal amount unless explicitly told to insane mode
-  THROTTLE_SCALING_FACTOR = 0.2;
+  Store().logThrottleScalingFactor(0.2);
   if (frame.id == DASH_ID) {
     // Check all three conditions for legal enable
     if(!Store().readTractiveVoltage()) {
@@ -44,11 +42,11 @@ void Rtd_Handler::handleMessage(Frame& frame) {
     Frame insane_mode_response = {.id = INSANE_MODE_RESPONSE_ID, .body={0}, .len=1};
 
     if (frame.body[0] == 0) {
-      THROTTLE_SCALING_FACTOR = 0.2;
+      Store().logThrottleScalingFactor(0.2);
       insane_mode_response.body[0] = 0;
     }
     else {
-      THROTTLE_SCALING_FACTOR = 0.4;
+      Store().logThrottleScalingFactor(0.4);
       insane_mode_response.body[0] = 1;
     }
     CAN().write(insane_mode_response);

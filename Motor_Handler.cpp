@@ -10,7 +10,6 @@
 const int REQUEST_PREFIX = 61; //0x3D
 const int TORQUE_PREFIX = 144; //0x90
 
-
 const int MOTOR_CURRENT_MODIFIER = 32; //0x20
 const int MOTOR_SPEED_MODIFIER = 48; //0x30
 const int MOTOR_ERRORS_MODIFIER = 143; //0x8F
