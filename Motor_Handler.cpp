@@ -5,10 +5,11 @@
 #include "Rtd_Controller.h"
 #include "Store_Controller.h"
 
+#include "Pins.h"
+
 const int REQUEST_PREFIX = 61; //0x3D
 const int TORQUE_PREFIX = 144; //0x90
 
-const float MOTOR_RPM_SCALING_FACTOR = 8.2;
 
 const int MOTOR_CURRENT_MODIFIER = 32; //0x20
 const int MOTOR_SPEED_MODIFIER = 48; //0x30
@@ -66,6 +67,15 @@ void Motor_Handler::handleMessage(Frame& message) {
     Store().logMotorResponse(Store().LeftMotor);
   }
 
+  bool bothMcOn =
+    Store().readMotorResponse(Store().RightMotor) &&
+    Store().readMotorResponse(Store().LeftMotor);
+
+  if(!bothMcOn) {
+    // Invalid message since both motor controllers are not yet on
+    return;
+  }
+
   switch(message.body[0]) {
     case MOTOR_CURRENT_MODIFIER:
       handleCurrentMessage(message);
@@ -112,13 +122,51 @@ void Motor_Handler::handleSpeedMessage(Frame& message) {
     wheel = Store_Controller::RearLeftWheel;
   }
 
-  int signed_speed = makePositive(
+  int signed_speed_numeric = makePositive(
       mergeBytesOfSignedInt(message.body[1], message.body[2])
   );
-  int converted_speed = signed_speed / MOTOR_RPM_SCALING_FACTOR;
-  Store().logSpeed(wheel, converted_speed);
 
+  int rpm = motor_speed_to_wheel_rpm(signed_speed_numeric);
+  Store().logSpeed(wheel, rpm);
+
+  int kph = wheel_rpm_to_kph(rpm);
+  // Evil logic that should go in Rtd_Controller...
+  if (kph > 5) {
+    digitalWrite(FAN_PIN, LOW);
+  }
+  else {
+    digitalWrite(FAN_PIN, HIGH);
+  }
 }
+
+int Motor_Handler::motor_speed_to_wheel_rpm(const int motor_speed) {
+  const float MOTOR_REVS_PER_MOTOR_SPEED_INCREMENT = 1.0 / 8.2;
+  const float WHEEL_REVS_PER_MOTOR_REV = 1.0 / 2.64;
+
+  float motor_rev_per_min =
+    motor_speed * MOTOR_REVS_PER_MOTOR_SPEED_INCREMENT;
+  float wheel_rev_per_min =
+    motor_rev_per_min * WHEEL_REVS_PER_MOTOR_REV;
+  int rpm_rounded = round(wheel_rev_per_min);
+  return rpm_rounded;
+}
+
+int Motor_Handler::wheel_rpm_to_kph(const int wheel_rpm) {
+  const float WHEEL_DIAMETER_CM = 52.07;
+  const float METERS_PER_CM = 0.01;
+  const float METERS_PER_WHEEL_REV =
+    WHEEL_DIAMETER_CM / METERS_PER_CM * PI;
+
+  const float MIN_PER_HR = 60;
+  const float KM_PER_METER = 0.001;
+  const float WHEEL_RPM_TO_WHEEL_KPH =
+    METERS_PER_WHEEL_REV * MIN_PER_HR * KM_PER_METER;
+
+  float kilo_per_hr = wheel_rpm * WHEEL_RPM_TO_WHEEL_KPH;
+  int kph_rounded = round(kilo_per_hr);
+  return kph_rounded;
+}
+
 void Motor_Handler::handleCurrentMessage(Frame& message) {
   // TODO convert this to an actual reading instead of just percent
   int16_t signed_current = mergeBytesOfSignedInt(message.body[1], message.body[2]);

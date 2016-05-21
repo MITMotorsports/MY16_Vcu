@@ -69,18 +69,12 @@ void Bms_Handler::logCellMessage(String prefix, unsigned char cell, int32_t read
 
 void Bms_Handler::handleVoltageMessage(Frame& message) {
   uint16_t total_volts = mergeBytes(message.body[1], message.body[0]);
-  // logPackMessage("total_voltage", total_volts, "volts");
   Store().logBmsVoltage(total_volts);
-  uint16_t min_volts = message.body[2] * 100;
-  uint16_t max_volts = message.body[4] * 100;
-  logCellMessage("min_voltage", message.body[3], min_volts, "millivolts");
-  logCellMessage("max_voltage", message.body[5], max_volts, "millivolts");
 }
 
 void Bms_Handler::handleCurrentMessage(Frame& message) {
   uint16_t total_current = mergeBytes(message.body[1], message.body[0]);
   int16_t signed_current = (int16_t) total_current;
-  // logPackMessage("total_current", signed_current, "amps");
   Store().logBmsCurrent(signed_current);
 }
 
@@ -99,19 +93,9 @@ void Bms_Handler::handleSocMessage(Frame& message) {
   Store().logSoc(soc);
 }
 
-void Bms_Handler::handleSummaryMessage(Frame& message) {
-  uint16_t total_volts = mergeBytes(message.body[1], message.body[0]);
-  logPackMessage("fast_total_voltage", total_volts, "volts");
-
-  uint16_t total_current = mergeBytes(message.body[3], message.body[2]);
-  int16_t signed_current = (int16_t) total_current;
-  logPackMessage("fast_total_current", signed_current, "amps");
-
-  unsigned char temp = message.body[4];
-  logPackMessage("fast_total_temp", temp, "degrees");
-
-  unsigned char SOC = message.body[5];
-  logPackMessage("fast_SOC", SOC, "percent");
+void Bms_Handler::handleSummaryMessage(Frame&) {
+  // Ignored for now
+  return;
 }
 
 void Bms_Handler::handleFaultMessage(Frame& message) {

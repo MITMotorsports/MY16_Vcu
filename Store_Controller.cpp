@@ -4,6 +4,8 @@
 
 Store_Controller* Store_Controller::instance = NULL;
 
+bool shouldLogAnything = false;
+
 Store_Controller::Store_Controller() 
   : speeds{SENTINAL, SENTINAL, SENTINAL, SENTINAL}
   , responses{false, false}
@@ -23,6 +25,9 @@ Store_Controller::Store_Controller()
 
 template <typename First>
 void logOne(const First& first) {
+  if (!shouldLogAnything) {
+    return;
+  }
   Serial.print(String(first));
   Serial.print(", ");
   Serial.println(millis());
@@ -34,6 +39,9 @@ void logOne(const First& first) {
 
 template <typename First, typename Second>
 void logTwo(const First& first, const Second& second) {
+  if (!shouldLogAnything) {
+    return;
+  }
   Serial.print(String(first));
   Serial.print(", ");
   Serial.print(String(second));
@@ -49,6 +57,9 @@ void logTwo(const First& first, const Second& second) {
 
 template <typename First, typename Second, typename Third>
 void logThree(const First& first, const Second& second, const Third& third) {
+  if (!shouldLogAnything) {
+    return;
+  }
   Serial.print(String(first));
   Serial.print(", ");
   Serial.print(String(second));
@@ -68,6 +79,9 @@ void logThree(const First& first, const Second& second, const Third& third) {
 
 template <typename First, typename Second, typename Third, typename Fourth>
 void logFour(const First& first, const Second& second, const Third& third, const Fourth& fourth) {
+  if (!shouldLogAnything) {
+    return;
+  }
   Serial.print(String(first));
   Serial.print(", ");
   Serial.print(String(second));
@@ -91,6 +105,9 @@ void logFour(const First& first, const Second& second, const Third& third, const
 
 template <typename First, typename Second, typename Third, typename Fourth, typename Fifth>
 void logFive(const First& first, const Second& second, const Third& third, const Fourth& fourth, const Fifth& fifth) {
+  if (!shouldLogAnything) {
+    return;
+  }
   Serial.print(String(first));
   Serial.print(", ");
   Serial.print(String(second));

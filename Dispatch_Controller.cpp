@@ -49,9 +49,11 @@ bool requestPermanentUpdatesRight(Task*) {
 DelayRun requestRightMotorUpdatesTask(100, requestPermanentUpdatesRight);
 
 void Dispatch_Controller::requestMotorVoltage() {
-  bool leftMotorResponded = Store().readMotorResponse(Store().LeftMotor);
-  bool rightMotorResponded = Store().readMotorResponse(Store().RightMotor);
-  if (!(leftMotorResponded && rightMotorResponded)) {
+  bool bothMcOn =
+    Store().readMotorResponse(Store().RightMotor) &&
+    Store().readMotorResponse(Store().LeftMotor);
+
+  if (!bothMcOn) {
     motor_handler.requestSingleVoltageUpdate();
   }
   else {
