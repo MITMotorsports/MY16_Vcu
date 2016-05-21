@@ -9,8 +9,6 @@ const int PORT_THROTTLE = 1;
 const int STARBOARD_BRAKE = 2;
 const int PORT_BRAKE = 3;
 
-const float THROTTLE_SCALING_FACTOR = 0.2;
-
 const uint8_t TORQUE_PREFIX = 144; //0x90
 
 void Can_Node_Handler::brakeLightOn() {
