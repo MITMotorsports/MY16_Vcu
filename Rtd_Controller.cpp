@@ -26,7 +26,7 @@ void Rtd_Controller::begin() {
   setEnablePins(LOW);
 
   pinMode(FAN_PIN, OUTPUT);
-  digitalWrite(FAN_PIN, HIGH);
+  digitalWrite(FAN_PIN, LOW);
 }
 
 Rtd_Controller& Rtd_Controller::getInstance() {

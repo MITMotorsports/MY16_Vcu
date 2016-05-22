@@ -126,6 +126,7 @@ void Dispatch_Controller::disable() {
   if(!enabled) {
     return;
   }
+  digitalWrite(FAN_PIN, LOW);
   enabled = false;
 
   // Actually disable
@@ -155,6 +156,7 @@ void Dispatch_Controller::enable() {
   if(enabled) {
     return;
   }
+  digitalWrite(FAN_PIN, HIGH);
   enabled = true;
 
   // Actually enable

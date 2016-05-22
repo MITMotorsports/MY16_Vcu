@@ -130,13 +130,18 @@ void Motor_Handler::handleSpeedMessage(Frame& message) {
   Store().logSpeed(wheel, rpm);
 
   int kph = wheel_rpm_to_kph(rpm);
-  // Evil logic that should go in Rtd_Controller...
-  if (kph > 5) {
-    digitalWrite(FAN_PIN, LOW);
+  if (!Dispatcher().isEnabled()) {
+    return;
   }
   else {
-    digitalWrite(FAN_PIN, HIGH);
+    if (kph > 30) {
+      digitalWrite(FAN_PIN, LOW);
+    }
+    else {
+      digitalWrite(FAN_PIN, HIGH);
+    }
   }
+  // Evil logic that should go in Rtd_Controller...
 }
 
 int Motor_Handler::motor_speed_to_wheel_rpm(const int motor_speed) {
