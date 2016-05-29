@@ -4,10 +4,9 @@
 #include "Rtd_Controller.h"
 #include "Store_Controller.h"
 
-const int STARBOARD_THROTTLE = 0;
-const int PORT_THROTTLE = 1;
-const int STARBOARD_BRAKE = 2;
-const int PORT_BRAKE = 3;
+const int STARBOARD_THROTTLE_IDX = 0;
+const int PORT_THROTTLE_IDX = 1;
+const int BRAKE_IDX = 2;
 
 const float THROTTLE_SCALING_FACTOR = 0.5;
 
@@ -24,7 +23,7 @@ void Can_Node_Handler::brakeLightOff() {
 void Can_Node_Handler::begin() {
   // No initialization needed
   pinMode(BRAKE_LIGHT_PIN, OUTPUT);
-  brakeLightOn();
+  brakeLightOff();
 }
 
 void Can_Node_Handler::handleMessage(Frame& message) {
@@ -36,10 +35,10 @@ void Can_Node_Handler::handleMessage(Frame& message) {
   // Handle throttle messages
   bool plausible = true;
   uint8_t analogThrottle;
-  if (isPlausible(message.body[STARBOARD_THROTTLE], message.body[PORT_THROTTLE])) {
+  if (isPlausible(message.body[STARBOARD_THROTTLE_IDX], message.body[PORT_THROTTLE_IDX])) {
     analogThrottle = min(
-      message.body[STARBOARD_THROTTLE],
-      message.body[PORT_THROTTLE]
+      message.body[STARBOARD_THROTTLE_IDX],
+      message.body[PORT_THROTTLE_IDX]
     );
   }
   else {
@@ -49,18 +48,14 @@ void Can_Node_Handler::handleMessage(Frame& message) {
   Store().logAnalogThrottle(analogThrottle);
 
   // Handle brake messages
-  uint8_t brakeImplausible = message.body[PORT_BRAKE];
-  uint8_t analogBrake = message.body[STARBOARD_BRAKE];
-  if (brakeImplausible != 0) {
-    analogBrake = 0;
-    plausible = false;
+  uint8_t analogBrake = message.body[BRAKE_IDX];
+
+  if(analogBrake < BRAKE_PUSHED_CUTOFF) {
+    brakeLightOff();
+  } else {
+    brakeLightOn();
   }
-  // if(analogBrake < BRAKE_PUSHED_CUTOFF) {
-  //   brakeLightOff();
-  // } else {
-  //   brakeLightOn();
-  // }
-  // brakeLightOn();
+
   Store().logAnalogBrake(analogBrake);
 
   // Don't do torque commands if car is disabled!

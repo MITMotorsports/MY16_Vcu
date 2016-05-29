@@ -25,7 +25,7 @@ void Rtd_Handler::handleMessage(Frame& frame) {
       return;
     }
 
-    bool brakePressed = true; //Store().readAnalogBrake() >= BRAKE_PUSHED_CUTOFF;
+    bool brakePressed = Store().readAnalogBrake() >= BRAKE_PUSHED_CUTOFF;
     bool isEnableMessage = frame.body[0];
     if (isEnableMessage) {
       if (brakePressed) {
