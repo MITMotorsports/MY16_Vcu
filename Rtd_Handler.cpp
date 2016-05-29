@@ -17,24 +17,28 @@ void Rtd_Handler::handleMessage(Frame& frame) {
   }
   else {
     // Check all three conditions for legal enable
-    if(!Store().readTractiveVoltage()) {
-      // Ignore message; driver was dumb and pushed button
-      // before HV was on
-      Serial.println("NO Enable: Low Voltage");
+    bool bothMotorsAlive =
+      Store().readMotorHighVoltage(Store().LeftMotor) &&
+      Store().readMotorHighVoltage(Store().RightMotor);
+    if (!bothMotorsAlive) {
+      // Car still in shutdown state, do nothing
       return;
     }
-    if(frame.body[0]) {
-      if(Store().readAnalogBrake() > BRAKE_PUSHED_CUTOFF) {
-        Serial.println("Enable");
+
+    bool brakePressed = true; //Store().readAnalogBrake() >= BRAKE_PUSHED_CUTOFF;
+    bool isEnableMessage = frame.body[0];
+    if (isEnableMessage) {
+      if (brakePressed) {
+        // Legal enable
         Dispatcher().enable();
       }
       else {
-        Serial.println("NO Enable: No Brake");
+        // Illegal enable; do nothing
       }
     }
     else {
+      // Disable
       Dispatcher().disable();
-      Serial.println("NO Enable: Disable Pressed");
     }
   }
 }

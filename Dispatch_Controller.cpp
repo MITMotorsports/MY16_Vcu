@@ -8,6 +8,7 @@
 #include "Can_Controller.h"
 #include "Rtd_Controller.h"
 #include "Store_Controller.h"
+#include "Logger.h"
 
 Dispatch_Controller::Dispatch_Controller()
 : rtd_handler(Rtd_Handler()),
@@ -77,10 +78,6 @@ void Dispatch_Controller::begin() {
   }
   begun = true;
 
-  // Start serial bus
-  Serial.begin(115200);
-  Serial2.begin(57600);
-
   // Initialize controllers
   CAN().begin();
   RTD().begin();
@@ -96,10 +93,8 @@ void Dispatch_Controller::begin() {
   // Start MC requests
   SoftTimer.add(&voltageTask);
 
-  //Log to DAQ
-  Serial.println("");
-  Serial.println("VEHICLE_POWERED_ON");
-  Serial.println("");
+  Computer().logOne("vehicle_power_on");
+  Xbee().logOne("vehicle_power_on");
 }
 
 // Must define instance prior to use
@@ -126,29 +121,16 @@ void Dispatch_Controller::disable() {
   if(!enabled) {
     return;
   }
-  digitalWrite(FAN_PIN, LOW);
   enabled = false;
 
   // Actually disable
   RTD().disable();
 
-  // Notify listeners of disable
-  uint8_t data;
-  if (Store().readTractiveVoltage()) {
-    // Send a light-off message
-    data = 0;
-  }
-  else {
-    // Send a light-blink message
-    data = 2;
-  }
-  Frame disableMessage = { .id=VCU_ID, .body={data}, .len=1};
+  Frame disableMessage = { .id=VCU_ID, .body={0}, .len=1};
   CAN().write(disableMessage);
 
-  // Log disable
-  Serial2.println("");
-  Serial.println("VEHICLE_DISABLED");
-  Serial.println("");
+  Xbee().logOne("vehicle_disabled");
+  Computer().logOne("vehicle_disabled");
 }
 
 void Dispatch_Controller::enable() {
@@ -156,7 +138,6 @@ void Dispatch_Controller::enable() {
   if(enabled) {
     return;
   }
-  digitalWrite(FAN_PIN, HIGH);
   enabled = true;
 
   // Actually enable
@@ -166,10 +147,8 @@ void Dispatch_Controller::enable() {
   Frame enableMessage = { .id=VCU_ID, .body={1}, .len=1};
   CAN().write(enableMessage);
 
-  // Log enable to DAQ
-  Serial.println("");
-  Serial.println("VEHICLE_ENABLED");
-  Serial.println("");
+  Xbee().logOne("vehicle_enabled");
+  Computer().logOne("vehicle_enabled");
 }
 
 void Dispatch_Controller::dispatch() {

@@ -9,7 +9,7 @@ const int PORT_THROTTLE = 1;
 const int STARBOARD_BRAKE = 2;
 const int PORT_BRAKE = 3;
 
-const float THROTTLE_SCALING_FACTOR = 0.2;
+const float THROTTLE_SCALING_FACTOR = 0.5;
 
 const uint8_t TORQUE_PREFIX = 144; //0x90
 
@@ -24,7 +24,7 @@ void Can_Node_Handler::brakeLightOff() {
 void Can_Node_Handler::begin() {
   // No initialization needed
   pinMode(BRAKE_LIGHT_PIN, OUTPUT);
-  brakeLightOff();
+  brakeLightOn();
 }
 
 void Can_Node_Handler::handleMessage(Frame& message) {
@@ -49,12 +49,18 @@ void Can_Node_Handler::handleMessage(Frame& message) {
   Store().logAnalogThrottle(analogThrottle);
 
   // Handle brake messages
+  uint8_t brakeImplausible = message.body[PORT_BRAKE];
   uint8_t analogBrake = message.body[STARBOARD_BRAKE];
-  if(analogBrake < BRAKE_PUSHED_CUTOFF) {
-    brakeLightOff();
-  } else {
-    brakeLightOn();
+  if (brakeImplausible != 0) {
+    analogBrake = 0;
+    plausible = false;
   }
+  // if(analogBrake < BRAKE_PUSHED_CUTOFF) {
+  //   brakeLightOff();
+  // } else {
+  //   brakeLightOn();
+  // }
+  // brakeLightOn();
   Store().logAnalogBrake(analogBrake);
 
   // Don't do torque commands if car is disabled!
@@ -62,16 +68,14 @@ void Can_Node_Handler::handleMessage(Frame& message) {
     return;
   }
 
-  // But not torque
+  // Zero torque if implausible
   if (!plausible) {
-    Store().logOutputTorque(0);
     writeThrottleMessages(0);
     return;
   }
 
   // Also zero torque if brake-throttle conflict
   if (brakeThrottleConflict(analogThrottle, analogBrake)) {
-    Store().logOutputTorque(0);
     writeThrottleMessages(0);
     return;
   }
@@ -84,7 +88,6 @@ void Can_Node_Handler::handleMessage(Frame& message) {
   const int16_t outputTorque = (int16_t) (round(throttleScaled));
 
   // Log and write torque commands
-  Store().logOutputTorque(outputTorque);
   writeThrottleMessages(outputTorque);
 }
 
@@ -98,30 +101,38 @@ bool Can_Node_Handler::isPlausible(uint8_t x, uint8_t y) {
 }
 
 bool Can_Node_Handler::brakeThrottleConflict(uint8_t analogThrottle, uint8_t analogBrake) {
-  bool result = false;
   if (Store().readBrakeThrottleConflict()) {
     // We recently triggered a conflict: stay in conflict mode
     // unless throttle below 5%
-    if (analogThrottle < (255 * 0.05)) {
-      // Remove conflict
+
+    bool throttleReleased = analogThrottle < (255 * 0.05);
+
+    if (throttleReleased) {
+      // Remove conflict and log that it's cleared
       Store().logBrakeThrottleConflict(false);
     }
     else {
-      // Don't remove conflict
-      result = true;
+      // Don't remove conflict and log that it persists
+      Store().logBrakeThrottleConflict(true);
     }
   }
   else {
     // We are not in conflict mode: only trigger conflict if
     // throttle above 25% and brake pressed
-    if (analogThrottle >= (255 * 0.25)) {
-      if (analogBrake >= BRAKE_PUSHED_CUTOFF) {
-        Store().logBrakeThrottleConflict(true);
-        result = true;
-      }
+
+    bool throttlePushed = analogThrottle >= (255 * 0.05);
+    bool brakePushed = analogBrake >= BRAKE_PUSHED_CUTOFF;
+
+    if (throttlePushed && brakePushed) {
+      // Add conflict and log that it's added
+      Store().logBrakeThrottleConflict(true);
+    }
+    else {
+      // No conflict added, let's keep it that way
+      Store().logBrakeThrottleConflict(false);
     }
   }
-  return result;
+  return Store().readBrakeThrottleConflict();
 }
 
 // Right motor spins backwards
@@ -148,4 +159,7 @@ void Can_Node_Handler::writeThrottleMessages(const int16_t throttle) {
     .len=3
   };
   CAN().write(rightFrame);
+
+  // Log output torque as a raw value
+  Store().logOutputTorque(throttle);
 }

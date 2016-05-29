@@ -7,64 +7,82 @@ class Store_Controller {
   public:
     static Store_Controller& readInstance();
 
-    static const int16_t SENTINAL = -32768;
-
+    // Directions for typechecking
     enum Wheel {FrontRightWheel, FrontLeftWheel, RearRightWheel, RearLeftWheel, WHEEL_LENGTH};
+    enum Motor {LeftMotor, RightMotor, MOTOR_LENGTH};
 
-    enum MotorController {LeftMotor, RightMotor, MOTOR_CONTROLLER_LENGTH};
-
-    void logSpeed(Wheel wheel, int16_t rpm);
-    int16_t readSpeed(Wheel wheel);
-
+    // Can node readings
     void logAnalogThrottle(uint8_t throttle);
     uint8_t readAnalogThrottle();
-
     void logAnalogBrake(uint8_t brake);
     uint8_t readAnalogBrake();
-
+    void logBrakeThrottleConflict(bool conflict);
+    bool readBrakeThrottleConflict();
     void logOutputTorque(int16_t torque);
     int16_t readOutputTorque();
 
-    void logBrakeThrottleConflict(bool conflict);
-    bool readBrakeThrottleConflict();
+    // Speeds
+    void logSpeed(Wheel wheel, int16_t wheel_rpm);
+    int16_t readSpeed(Wheel wheel);
 
-    void logMotorResponse(MotorController dir);
-    bool readMotorResponse(MotorController dir);
+    // Motor controller states
+    void logMotorResponse(Motor dir);
+    bool readMotorResponse(Motor dir);
+    void logMotorErrors(Motor dir, uint16_t error_string);
+    bool readMotorErrors(Motor dir);
+    void logMotorHighVoltage(Motor dir, bool state);
+    bool readMotorHighVoltage(Motor dir);
+    void logMotorLowVoltage(Motor dir, bool state);
+    bool readMotorLowVoltage(Motor dir);
 
-    void logTractiveVoltage(bool tractiveVoltageOn);
-    bool readTractiveVoltage();
+    // Motor controller readings
+    void logMotorCurrent(Motor dir, int16_t current);
+    int16_t readMotorCurrent(Motor dir);
+    void logMotorRpm(Motor dir, int16_t motor_rpm);
+    int16_t readMotorRpm(Motor dir);
 
-    void logMotorCurrent(MotorController controller, int16_t current);
-    int16_t readMotorCurrent(MotorController controller);
+    // Convenience methods for enum access
+    Motor toMotor(uint16_t id);
+    Motor otherMotor(Motor thisMotor);
 
-    void logBmsTemp(int16_t temp);
-    int16_t readBmsTemp();
-
-    void logBmsCurrent(int16_t current);
-    int16_t readBmsCurrent();
-
-    void logBmsVoltage(int16_t volts);
-    int16_t readBmsVoltage();
-
-    void logSoc(int16_t percent);
-    int16_t readSoc();
-
-    void logMotorErrors(MotorController controller, uint16_t error_string);
+    // BMS state
     void logBmsFaults(uint8_t fault_string);
     void logBmsWarnings(uint8_t warning_string);
+
+    // BMS readings
+    void logBmsTemp(int16_t temp);
+    int16_t readBmsTemp();
+    void logBmsCurrent(int16_t current);
+    int16_t readBmsCurrent();
+    void logBmsVoltage(int16_t volts);
+    int16_t readBmsVoltage();
+    void logBmsSoc(int16_t percent);
+    int16_t readBmsSoc();
 
   private:
     Store_Controller();
     static Store_Controller *instance;
 
-    int16_t speeds[WHEEL_LENGTH];
-    bool responses[MOTOR_CONTROLLER_LENGTH];
-    int16_t currents[MOTOR_CONTROLLER_LENGTH];
+    // Can node logging
     uint8_t analogThrottle;
     uint8_t analogBrake;
-    int16_t outputTorque;
-    bool tractiveVoltageOn;
     bool brakeThrottleConflict;
+    int16_t outputTorque;
+
+    // Wheel logging
+    int16_t speeds[WHEEL_LENGTH];
+
+    // Motor controller states
+    bool responses[MOTOR_LENGTH];
+    bool errors[MOTOR_LENGTH];
+    bool highVoltage[MOTOR_LENGTH];
+    bool lowVoltage[MOTOR_LENGTH];
+    int16_t motorRpm[MOTOR_LENGTH];
+
+    // Motor controller readings
+    int16_t currents[MOTOR_LENGTH];
+
+    // BMS logging
     int16_t bmsTemp;
     int16_t bmsCurrent;
     int16_t bmsVoltage;
@@ -72,5 +90,7 @@ class Store_Controller {
 };
 
 Store_Controller& Store();
+typedef enum Store_Controller::Motor Motor;
+typedef enum Store_Controller::Wheel Wheel;
 
 #endif // STORE_CONTROLLER_H

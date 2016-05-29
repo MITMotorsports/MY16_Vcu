@@ -1,5 +1,6 @@
 #include "Rtd_Controller.h"
 #include "Pins.h"
+#include "Logger.h"
 
 // Must define instance prior to use
 Rtd_Controller* Rtd_Controller::instance = NULL;
@@ -27,6 +28,7 @@ void Rtd_Controller::begin() {
 
   pinMode(FAN_PIN, OUTPUT);
   digitalWrite(FAN_PIN, LOW);
+  analogWrite(FAN_PIN, 128);
 }
 
 Rtd_Controller& Rtd_Controller::getInstance() {
@@ -64,10 +66,8 @@ void Rtd_Controller::setEnablePins(uint8_t direction) {
 
 void Rtd_Controller::shutdown(String reason = "") {
   disable();
-  Serial.println("");
-  Serial.print("CAR_SHUTDOWN: ");
-  Serial.println(reason);
-  Serial.println("");
+  Computer().logTwo("vehicle_shutdown", reason);
+  Xbee().logTwo("vehicle_shutdown", reason);
   digitalWrite(SHUTDOWN_CIRCUIT_PIN, LOW);
 }
 

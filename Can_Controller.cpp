@@ -1,4 +1,5 @@
 #include "Can_Controller.h"
+#include "Logger.h"
 
 // Must define instance prior to use
 Can_Controller* Can_Controller::instance = NULL;
@@ -32,8 +33,9 @@ void Can_Controller::begin() {
   // DON'T set MCP_CS: mcp_can library does it for us
   pinMode(MCP_INT_PIN, INPUT);
 
+  uint8_t response = delegate.begin(CAN_500KBPS);
   if (delegate.begin(CAN_500KBPS) != CAN_OK) {
-    Serial.print(F("Error when enabling CAN"));
+    Computer().logTwo("CAN_begin_error", canResponseToString(response));
   }
 }
 
@@ -45,8 +47,7 @@ Frame Can_Controller::read() {
   Frame frame;
   uint8_t response = delegate.readMsgBuf(&frame.len, frame.body);
   if (response != CAN_OK) {
-    Serial.print("PROBLEM: ");
-    Serial.println(canResponseToString(response));
+    Computer().logTwo("CAN_read_error", canResponseToString(response));
   }
   frame.id = delegate.getCanId();
   return frame;
@@ -88,5 +89,8 @@ String Can_Controller::canResponseToString(uint8_t response) {
 }
 
 void Can_Controller::write(Frame f) {
-  delegate.sendMsgBuf(f.id, 0, f.len, f.body);
+  uint8_t response = delegate.sendMsgBuf(f.id, 0, f.len, f.body);
+  if (response != CAN_OK) {
+    Computer().logTwo("CAN_write_error", canResponseToString(response));
+  }
 }

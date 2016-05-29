@@ -22,6 +22,6 @@ class Can_Node_Handler : public Handler {
 };
 
 // Consider 10% of brake pressure a pushed brake
-const uint8_t BRAKE_PUSHED_CUTOFF = 25;
+const uint8_t BRAKE_PUSHED_CUTOFF = 50;
 
 #endif // CAN_NODE_HANDLER_H

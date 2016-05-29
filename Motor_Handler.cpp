@@ -14,25 +14,18 @@ const int TORQUE_PREFIX = 144; //0x90
 const int MOTOR_CURRENT_MODIFIER = 32; //0x20
 const int MOTOR_SPEED_MODIFIER = 48; //0x30
 const int MOTOR_ERRORS_MODIFIER = 143; //0x8F
-const int MOTOR_VOLTAGE_MODIFIER = 224; //0xE0
+const int MOTOR_HIGH_VOLTAGE_MODIFIER = 224; //0xE0
+const int MOTOR_LOW_VOLTAGE_MODIFIER = 225; //0xE1
 
 void Motor_Handler::begin() {
   // No initialization needed
 }
 
 void Motor_Handler::requestSingleVoltageUpdate() {
-  Frame frame = {.id=LEFT_MOTOR_REQUEST_ID, .body={REQUEST_PREFIX, MOTOR_VOLTAGE_MODIFIER, 0}, .len=3};
+  Frame frame = {.id=LEFT_MOTOR_REQUEST_ID, .body={REQUEST_PREFIX, MOTOR_HIGH_VOLTAGE_MODIFIER, 0}, .len=3};
   CAN().write(frame);
 
-  frame = {.id=RIGHT_MOTOR_REQUEST_ID, .body={REQUEST_PREFIX, MOTOR_VOLTAGE_MODIFIER, 0}, .len=3};
-  CAN().write(frame);
-}
-
-void Motor_Handler::requestPermanentVoltageUpdate() {
-  Frame frame = {.id=LEFT_MOTOR_REQUEST_ID, .body={REQUEST_PREFIX, MOTOR_VOLTAGE_MODIFIER, 100}, .len=3};
-  CAN().write(frame);
-
-  frame = {.id=RIGHT_MOTOR_REQUEST_ID, .body={REQUEST_PREFIX, MOTOR_VOLTAGE_MODIFIER, 100}, .len=3};
+  frame = {.id=RIGHT_MOTOR_REQUEST_ID, .body={REQUEST_PREFIX, MOTOR_HIGH_VOLTAGE_MODIFIER, 0}, .len=3};
   CAN().write(frame);
 }
 
@@ -40,7 +33,8 @@ void Motor_Handler::requestPermanentUpdates(uint16_t can_id) {
   requestPermanentUpdate(can_id, MOTOR_CURRENT_MODIFIER, 101);
   requestPermanentUpdate(can_id, MOTOR_SPEED_MODIFIER, 103);
   requestPermanentUpdate(can_id, MOTOR_ERRORS_MODIFIER, 105);
-  requestPermanentUpdate(can_id, MOTOR_VOLTAGE_MODIFIER, 107);
+  requestPermanentUpdate(can_id, MOTOR_HIGH_VOLTAGE_MODIFIER, 107);
+  requestPermanentUpdate(can_id, MOTOR_LOW_VOLTAGE_MODIFIER, 109);
   // requestPermanentUpdate(can_id, MOTOR_TEMP_MODIFIER, 109);
   // requestPermanentUpdate(can_id, MOTOR_POSITION_MODIFIER, 113);
 }
@@ -60,13 +54,7 @@ void Motor_Handler::handleMessage(Frame& message) {
   if(!(message.id == RIGHT_MOTOR_ID || message.id == LEFT_MOTOR_ID)) {
     return;
   }
-  if(message.id == RIGHT_MOTOR_ID) {
-    Store().logMotorResponse(Store().RightMotor);
-  }
-  else {
-    Store().logMotorResponse(Store().LeftMotor);
-  }
-
+  Store().logMotorResponse(Store().toMotor(message.id));
   bool bothMcOn =
     Store().readMotorResponse(Store().RightMotor) &&
     Store().readMotorResponse(Store().LeftMotor);
@@ -83,8 +71,11 @@ void Motor_Handler::handleMessage(Frame& message) {
     case MOTOR_SPEED_MODIFIER:
       handleSpeedMessage(message);
       break;
-    case MOTOR_VOLTAGE_MODIFIER:
-      handleVoltageMessage(message);
+    case MOTOR_HIGH_VOLTAGE_MODIFIER:
+      handleHighVoltageMessage(message);
+      break;
+    case MOTOR_LOW_VOLTAGE_MODIFIER:
+      handleLowVoltageMessage(message);
       break;
     case MOTOR_ERRORS_MODIFIER:
       handleWarningMessage(message);
@@ -103,7 +94,7 @@ int16_t makePositive(int16_t x) {
 
 void Motor_Handler::handleWarningMessage(Frame& message) {
   uint16_t warning_string = (message.body[2] << 8) + message.body[1];
-  Store_Controller::MotorController motor;
+  Store_Controller::Motor motor;
   if (message.id == RIGHT_MOTOR_ID) {
     motor = Store_Controller::RightMotor;
   }
@@ -114,46 +105,31 @@ void Motor_Handler::handleWarningMessage(Frame& message) {
 }
 
 void Motor_Handler::handleSpeedMessage(Frame& message) {
-  Store_Controller::Wheel wheel;
-  if (message.id == RIGHT_MOTOR_ID) {
-    wheel = Store_Controller::RearRightWheel;
-  }
-  else {
-    wheel = Store_Controller::RearLeftWheel;
-  }
-
+  Motor motor = Store().toMotor(message.id);
   int signed_speed_numeric = makePositive(
       mergeBytesOfSignedInt(message.body[1], message.body[2])
   );
 
-  int rpm = motor_speed_to_wheel_rpm(signed_speed_numeric);
-  Store().logSpeed(wheel, rpm);
-
-  int kph = wheel_rpm_to_kph(rpm);
-  if (!Dispatcher().isEnabled()) {
-    return;
-  }
-  else {
-    if (kph > 30) {
-      digitalWrite(FAN_PIN, LOW);
-    }
-    else {
-      digitalWrite(FAN_PIN, HIGH);
-    }
-  }
-  // Evil logic that should go in Rtd_Controller...
+  int rpm = motor_speed_to_motor_rpm(signed_speed_numeric);
+  Store().logMotorRpm(motor, rpm);
 }
 
-int Motor_Handler::motor_speed_to_wheel_rpm(const int motor_speed) {
-  const float MOTOR_REVS_PER_MOTOR_SPEED_INCREMENT = 1.0 / 8.2;
+int Motor_Handler::motor_rpm_to_wheel_rpm(const int motor_rev_per_min) {
   const float WHEEL_REVS_PER_MOTOR_REV = 1.0 / 2.64;
-
-  float motor_rev_per_min =
-    motor_speed * MOTOR_REVS_PER_MOTOR_SPEED_INCREMENT;
   float wheel_rev_per_min =
     motor_rev_per_min * WHEEL_REVS_PER_MOTOR_REV;
   int rpm_rounded = round(wheel_rev_per_min);
   return rpm_rounded;
+
+}
+
+int Motor_Handler::motor_speed_to_motor_rpm(const int motor_speed) {
+  const float MOTOR_REVS_PER_MOTOR_SPEED_INCREMENT = 1.0 / 8.2;
+  float motor_rev_per_min =
+    motor_speed * MOTOR_REVS_PER_MOTOR_SPEED_INCREMENT;
+  int rpm_rounded = round(motor_rev_per_min);
+  return rpm_rounded;
+
 }
 
 int Motor_Handler::wheel_rpm_to_kph(const int wheel_rpm) {
@@ -179,26 +155,41 @@ void Motor_Handler::handleCurrentMessage(Frame& message) {
   Store().logMotorCurrent(message.id == RIGHT_MOTOR_ID ? Store_Controller::RightMotor : Store_Controller::LeftMotor, current);
 }
 
-void Motor_Handler::handleVoltageMessage(Frame& message) {
+void Motor_Handler::handleHighVoltageMessage(Frame& message) {
   // Don't worry about this message if car already enabled
   if (Dispatcher().isEnabled()) {
     return;
   }
+  Motor thisMotor = Store().toMotor(message.id);
+  Motor otherMotor = Store().otherMotor(thisMotor);
 
-  bool previousVoltageLive = Store().readTractiveVoltage();
-  bool currentVoltageLive = (message.body[1] != 0);
+  // Check if voltage above 200v
+  bool hasVoltage = (message.body[1] != 0);
 
-  if(!currentVoltageLive && previousVoltageLive) {
-    // Voltage was high and has become low, tell dash to shut off light
-    Frame shutdownMessage = { .id=VCU_ID, .body={2}, .len=1};
-    CAN().write(shutdownMessage);
-    Store().logTractiveVoltage(false);
+  // Only do stuff if voltage has changed so as not to flood bus
+  if (hasVoltage != Store().readMotorHighVoltage(thisMotor)) {
+    bool voltageOn = hasVoltage &&
+      Store().readMotorHighVoltage(otherMotor);
+    uint8_t bodyValue = voltageOn ? 0 : 2;
+    Frame dashMessage = { .id=VCU_ID, .body={bodyValue}, .len=1};
+    CAN().write(dashMessage);
+    Store().logMotorHighVoltage(thisMotor, hasVoltage);
   }
-  else if (currentVoltageLive && !previousVoltageLive) {
-    // Voltage was low and has become high, tell dash to blink light
-    Serial.println("VOLTAGE HIGH: CAR LIVE");
-    Frame disableMessage = { .id=VCU_ID, .body={0}, .len=1};
-    CAN().write(disableMessage);
-    Store().logTractiveVoltage(true);
+}
+
+void Motor_Handler::handleLowVoltageMessage(Frame& message) {
+  // Don't worry about this message if car disabled
+  if (!Dispatcher().isEnabled()) {
+    return;
+  }
+  Motor thisMotor = Store().toMotor(message.id);
+
+  bool hasVoltage = (message.body[1] == 1);
+  if (hasVoltage != Store().readMotorLowVoltage(thisMotor)) {
+    Store().logMotorLowVoltage(thisMotor, hasVoltage);
+  }
+  if (!hasVoltage) {
+    // We received a very low voltage message; we should disable
+    Dispatcher().disable();
   }
 }
