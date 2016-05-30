@@ -19,7 +19,7 @@ Logger& Logger::readComputerInstance() {
 }
 Logger& Logger::readXbeeInstance() {
   if(!xbeeInstance) {
-    Serial2.begin(9600);
+    Serial2.begin(57600);
     xbeeInstance = new Logger(Serial2, true);
   }
   return *xbeeInstance;

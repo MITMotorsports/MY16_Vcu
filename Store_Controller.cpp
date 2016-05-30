@@ -63,7 +63,7 @@ bool Store_Controller::readBrakeThrottleConflict() {
 
 void Store_Controller::logOutputTorque(const int16_t torque) {
   outputTorque = torque;
-  Xbee().logThree("output_torque", torque, "int16_units");
+  Xbee().logTwo("torque_cmd", torque);
 }
 int16_t Store_Controller::readOutputTorque() {
   return outputTorque;
@@ -180,7 +180,9 @@ int16_t Store_Controller::readMotorCurrent(Motor controller) {
 void Store_Controller::logMotorRpm(Motor dir, int16_t rpm) {
   motorRpm[dir] = rpm;
   String motor_name = (dir == RightMotor) ? "right" : "left";
-  Xbee().logFour("motor_rpm", motor_name, rpm, "rpm");
+  if (Dispatcher().isEnabled()) {
+    Xbee().logFour("motor_rpm", motor_name, rpm, "rpm");
+  }
 }
 int16_t Store_Controller::readMotorRpm(Motor controller) {
   return motorRpm[controller];
