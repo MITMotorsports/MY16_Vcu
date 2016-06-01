@@ -1,5 +1,6 @@
 #include "Bms_Handler.h"
 #include "Store_Controller.h"
+#include "Logger.h"
 
 void Bms_Handler::begin() {
   // No initialization needed
@@ -37,14 +38,15 @@ uint16_t Bms_Handler::mergeBytes(unsigned char low, unsigned char high) {
 }
 
 void Bms_Handler::handleVoltageMessage(Frame& message) {
-  // Logging handled in summary message
-  (void)message;
+  uint16_t total_volts = mergeBytes(message.body[1], message.body[0]);
+  Store().logBmsVoltage(total_volts);
   return;
 }
 
 void Bms_Handler::handleCurrentMessage(Frame& message) {
-  // Logging handled in summary message
-  (void)message;
+  uint16_t total_current = mergeBytes(message.body[1], message.body[0]);
+  int16_t signed_current = (int16_t) total_current;
+  Store().logBmsCurrent(signed_current);
   return;
 }
 
@@ -59,12 +61,8 @@ void Bms_Handler::handleSocMessage(Frame& message) {
 }
 
 void Bms_Handler::handleSummaryMessage(Frame& message) {
-  uint16_t total_volts = mergeBytes(message.body[1], message.body[0]);
-  Store().logBmsVoltage(total_volts);
-
-  uint16_t total_current = mergeBytes(message.body[3], message.body[2]);
-  int16_t signed_current = (int16_t) total_current;
-  Store().logBmsCurrent(signed_current);
+  (void)message;
+  return;
 }
 
 void Bms_Handler::handleFaultMessage(Frame& message) {
