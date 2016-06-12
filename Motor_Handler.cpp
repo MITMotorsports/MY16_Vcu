@@ -10,8 +10,8 @@
 const int REQUEST_PREFIX = 61; //0x3D
 const int TORQUE_PREFIX = 144; //0x90
 
-
 const int MOTOR_CURRENT_MODIFIER = 32; //0x20
+const int MOTOR_CURRENT_COMMAND_MODIFIER = 38; //0x26
 const int MOTOR_SPEED_MODIFIER = 48; //0x30
 const int MOTOR_ERRORS_MODIFIER = 143; //0x8F
 const int MOTOR_HIGH_VOLTAGE_MODIFIER = 224; //0xE0
@@ -30,13 +30,14 @@ void Motor_Handler::requestSingleVoltageUpdate() {
 }
 
 void Motor_Handler::requestPermanentUpdates(uint16_t can_id) {
-  requestPermanentUpdate(can_id, MOTOR_CURRENT_MODIFIER, 101);
+  requestPermanentUpdate(can_id, MOTOR_CURRENT_COMMAND_MODIFIER, 100);
   requestPermanentUpdate(can_id, MOTOR_SPEED_MODIFIER, 103);
   requestPermanentUpdate(can_id, MOTOR_ERRORS_MODIFIER, 105);
   requestPermanentUpdate(can_id, MOTOR_HIGH_VOLTAGE_MODIFIER, 107);
   requestPermanentUpdate(can_id, MOTOR_LOW_VOLTAGE_MODIFIER, 109);
   // requestPermanentUpdate(can_id, MOTOR_TEMP_MODIFIER, 109);
   // requestPermanentUpdate(can_id, MOTOR_POSITION_MODIFIER, 113);
+  // requestPermanentUpdate(can_id, MOTOR_CURRENT_MODIFIER, 101);
 }
 
 void Motor_Handler::requestPermanentUpdate(uint16_t can_id, uint8_t msg_type, uint8_t time) {
@@ -65,7 +66,7 @@ void Motor_Handler::handleMessage(Frame& message) {
   }
 
   switch(message.body[0]) {
-    case MOTOR_CURRENT_MODIFIER:
+    case MOTOR_CURRENT_COMMAND_MODIFIER:
       handleCurrentMessage(message);
       break;
     case MOTOR_SPEED_MODIFIER:

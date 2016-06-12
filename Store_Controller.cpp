@@ -54,7 +54,8 @@ uint8_t Store_Controller::readAnalogBrake() {
 void Store_Controller::logBrakeThrottleConflict(const bool conflict) {
   brakeThrottleConflict = conflict;
   if (conflict) {
-    Xbee().logFive("brake_throttle_conflict", analogThrottle, "throttle", analogBrake, "brake");
+    // Xbee().logFive("brake_throttle_conflict", analogThrottle, "throttle", analogBrake, "brake");
+    Computer().logFive("brake_throttle_conflict", analogThrottle, "throttle", analogBrake, "brake");
   }
 }
 bool Store_Controller::readBrakeThrottleConflict() {
@@ -63,7 +64,8 @@ bool Store_Controller::readBrakeThrottleConflict() {
 
 void Store_Controller::logOutputTorque(const int16_t torque) {
   outputTorque = torque;
-  Xbee().logTwo("torque_cmd", torque);
+  // Xbee().logTwo("torque_cmd", torque);
+  Computer().logTwo("torque_cmd", torque);
 }
 int16_t Store_Controller::readOutputTorque() {
   return outputTorque;
@@ -132,6 +134,7 @@ void Store_Controller::logMotorErrors(Motor dir, uint16_t error_string) {
       if (error_name != "under_voltage") {
         hasFault = true;
         Xbee().logThree("motor_fault", motor_name, error_name);
+        Computer().logThree("motor_fault", motor_name, error_name);
       }
     }
   }
@@ -152,8 +155,8 @@ void Store_Controller::logMotorErrors(Motor dir, uint16_t error_string) {
 void Store_Controller::logMotorHighVoltage(Motor dir, bool state) {
   highVoltage[dir] = state;
   String motor_name = (dir == RightMotor) ? "right" : "left";
-  Xbee().logThree("motor_high_voltage", motor_name, state);
-  // Computer().logThree("motor_high_voltage", motor_name, state);
+  // Xbee().logThree("motor_high_voltage", motor_name, state);
+  Computer().logThree("motor_high_voltage", motor_name, state);
 }
 bool Store_Controller::readMotorHighVoltage(Motor dir) {
   return highVoltage[dir];
@@ -162,8 +165,8 @@ bool Store_Controller::readMotorHighVoltage(Motor dir) {
 void Store_Controller::logMotorLowVoltage(Motor dir, bool state) {
   lowVoltage[dir] = state;
   String motor_name = (dir == RightMotor) ? "right" : "left";
-  Xbee().logThree("motor_low_voltage", motor_name, state);
-  // Computer().logThree("motor_low_voltage", motor_name, state);
+  // Xbee().logThree("motor_low_voltage", motor_name, state);
+  Computer().logThree("motor_low_voltage", motor_name, state);
 }
 bool Store_Controller::readMotorLowVoltage(Motor dir) {
   return lowVoltage[dir];
@@ -172,6 +175,10 @@ bool Store_Controller::readMotorLowVoltage(Motor dir) {
 void Store_Controller::logMotorCurrent(Motor dir, int16_t current) {
   currents[dir] = current;
   String motor_name = (dir == RightMotor) ? "right" : "left";
+  if (Dispatcher().isEnabled()) {
+    // Xbee().logFour("motor_current_cmd", motor_name, current, "units");
+    Computer().logFour("motor_current_cmd", motor_name, current, "units");
+  }
 }
 int16_t Store_Controller::readMotorCurrent(Motor controller) {
   return currents[controller];
@@ -181,7 +188,8 @@ void Store_Controller::logMotorRpm(Motor dir, int16_t rpm) {
   motorRpm[dir] = rpm;
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
-    Xbee().logFour("motor_rpm", motor_name, rpm, "rpm");
+    // Xbee().logFour("motor_rpm", motor_name, rpm, "rpm");
+    Computer().logFour("motor_rpm", motor_name, rpm, "rpm");
   }
 }
 int16_t Store_Controller::readMotorRpm(Motor controller) {
@@ -212,7 +220,7 @@ void Store_Controller::logBmsFaults(uint8_t fault_string) {
     if (bitRead(fault_string, i)) {
       String fault_name = bms_faults[i];
       Xbee().logTwo("bms_fault", fault_name);
-      // Computer().logTwo("bms_fault", fault_name);
+      Computer().logTwo("bms_fault", fault_name);
     }
   }
 }
@@ -231,15 +239,16 @@ void Store_Controller::logBmsWarnings(uint8_t warning_string) {
   for(int i = 0; i < 8; i++) {
     if (bitRead(warning_string, i)) {
       String warning_name = bms_warnings[i];
-      // Xbee().logTwo("bms_warning", warning_name);
+      Xbee().logTwo("bms_warning", warning_name);
+      Computer().logTwo("bms_warning", warning_name);
     }
   }
 }
 
 void Store_Controller::logBmsTemp(const int16_t _bmsTemp) {
   bmsTemp = _bmsTemp;
-  Xbee().logThree("bms_temp", bmsTemp, "degrees");
-  // Computer().logThree("bms_temp", bmsTemp, "degrees");
+  // Xbee().logThree("bms_temp", bmsTemp, "degrees");
+  Computer().logThree("bms_temp", bmsTemp, "degrees");
 }
 int16_t Store_Controller::readBmsTemp() {
   return bmsTemp;
@@ -247,8 +256,8 @@ int16_t Store_Controller::readBmsTemp() {
 
 void Store_Controller::logBmsCurrent(const int16_t _bmsCurrent) {
   bmsCurrent = _bmsCurrent;
-  Xbee().logThree("bms_current", bmsCurrent, "amps");
-  // Computer().logThree("bms_current", bmsCurrent, "amps");
+  // Xbee().logThree("bms_current", bmsCurrent, "amps");
+  Computer().logThree("bms_current", bmsCurrent, "amps");
 }
 int16_t Store_Controller::readBmsCurrent() {
   return bmsCurrent;
@@ -257,7 +266,7 @@ int16_t Store_Controller::readBmsCurrent() {
 void Store_Controller::logBmsVoltage(const int16_t _bmsVoltage) {
   bmsVoltage = _bmsVoltage;
   Xbee().logThree("bms_voltage", bmsVoltage, "volts");
-  // Computer().logThree("bms_voltage", bmsVoltage, "volts");
+  Computer().logThree("bms_voltage", bmsVoltage, "volts");
 }
 int16_t Store_Controller::readBmsVoltage() {
   return bmsVoltage;

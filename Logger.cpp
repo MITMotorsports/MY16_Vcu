@@ -12,8 +12,8 @@ Logger::Logger(HardwareSerial& _output, bool _enabled)
 
 Logger& Logger::readComputerInstance() {
   if(!computerInstance) {
-    Serial.begin(115200);
-    computerInstance = new Logger(Serial, true);
+    Serial1.begin(115200);
+    computerInstance = new Logger(Serial1, true);
   }
   return *computerInstance;
 }
