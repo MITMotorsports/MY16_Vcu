@@ -54,8 +54,10 @@ class Store_Controller {
     // BMS readings
     void logBmsTemp(int16_t temp);
     int16_t readBmsTemp();
-    void logBmsCurrent(int16_t current);
-    int16_t readBmsCurrent();
+    void logBmsAveragedCurrent(int16_t current);
+    int16_t readBmsAveragedCurrent();
+    void logBmsInstantCurrent(int16_t current);
+    int16_t readBmsInstantCurrent();
     void logBmsVoltage(int16_t volts);
     int16_t readBmsVoltage();
     void logBmsSoc(int16_t percent);
@@ -87,7 +89,8 @@ class Store_Controller {
 
     // BMS logging
     int16_t bmsTemp;
-    int16_t bmsCurrent;
+    int16_t bmsAveragedCurrent;
+    int16_t bmsInstantCurrent;
     int16_t bmsVoltage;
     int16_t soc;
 };

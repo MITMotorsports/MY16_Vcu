@@ -8,7 +8,7 @@ class Bms_Handler : public Handler {
     void begin();
     void handleMessage(Frame& message);
   private:
-    uint16_t mergeBytes(unsigned char low, unsigned char high);
+    int16_t mergeBytes(unsigned char low, unsigned char high);
     void handleFaultMessage(Frame& message);
     void handleVoltageMessage(Frame& message);
     void handleCurrentMessage(Frame& message);

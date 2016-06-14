@@ -29,7 +29,8 @@ Store_Controller::Store_Controller()
 
   // BMS readings
   , bmsTemp(SENTINAL)
-  , bmsCurrent(SENTINAL)
+  , bmsAveragedCurrent(SENTINAL)
+  , bmsInstantCurrent(SENTINAL)
   , bmsVoltage(SENTINAL)
   , soc(SENTINAL)
 {
@@ -268,13 +269,22 @@ int16_t Store_Controller::readBmsTemp() {
   return bmsTemp;
 }
 
-void Store_Controller::logBmsCurrent(const int16_t _bmsCurrent) {
-  bmsCurrent = _bmsCurrent;
+void Store_Controller::logBmsAveragedCurrent(int16_t _bmsAveragedCurrent) {
+  bmsAveragedCurrent = _bmsAveragedCurrent;
   // Xbee().logThree("bms_current", bmsCurrent, "amps");
-  Computer().logThree("bms_current", bmsCurrent, "amps");
+  Computer().logThree("bms_averaged_current", bmsAveragedCurrent, "amps");
 }
-int16_t Store_Controller::readBmsCurrent() {
-  return bmsCurrent;
+int16_t Store_Controller::readBmsAveragedCurrent() {
+  return bmsAveragedCurrent;
+}
+
+void Store_Controller::logBmsInstantCurrent(int16_t _bmsInstantCurrent) {
+  bmsInstantCurrent = _bmsInstantCurrent;
+  // Xbee().logThree("bms_current", bmsCurrent, "amps");
+  Computer().logThree("bms_instant_current", bmsInstantCurrent, "amps");
+}
+int16_t Store_Controller::readBmsInstantCurrent() {
+  return bmsInstantCurrent;
 }
 
 void Store_Controller::logBmsVoltage(const int16_t _bmsVoltage) {

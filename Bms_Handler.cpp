@@ -31,37 +31,45 @@ void Bms_Handler::handleMessage(Frame& message) {
   }
 }
 
-uint16_t Bms_Handler::mergeBytes(unsigned char low, unsigned char high) {
-  uint16_t low_ext = low;
-  uint16_t high_ext = high << 8;
-  return low_ext + high_ext;
+int16_t Bms_Handler::mergeBytes(uint8_t low, uint8_t high) {
+  uint16_t low_ext = low & 0x00FF;
+  uint16_t high_ext = (high << 8);
+  return high_ext | low_ext;
 }
 
 void Bms_Handler::handleVoltageMessage(Frame& message) {
+  // If voltage ever goes above 32767 volts, use a different method
   uint16_t total_volts = mergeBytes(message.body[1], message.body[0]);
   Store().logBmsVoltage(total_volts);
   return;
 }
 
 void Bms_Handler::handleCurrentMessage(Frame& message) {
-  uint16_t total_current = mergeBytes(message.body[1], message.body[0]);
-  int16_t signed_current = (int16_t) total_current;
-  Store().logBmsCurrent(signed_current);
+  int16_t signed_current = mergeBytes(message.body[1], message.body[0]);
+  Store().logBmsAveragedCurrent(signed_current);
   return;
 }
 
 void Bms_Handler::handleTempMessage(Frame& message) {
-  unsigned char temp = message.body[0];
+  uint8_t temp = message.body[0];
   Store().logBmsTemp(temp);
 }
 
 void Bms_Handler::handleSocMessage(Frame& message) {
-  unsigned char soc = message.body[0];
+  uint8_t soc = message.body[0];
   Store().logBmsSoc(soc);
 }
 
 void Bms_Handler::handleSummaryMessage(Frame& message) {
-  (void)message;
+
+  uint8_t low_current_byte_in_100mA = message.body[3];
+  uint8_t high_current_byte_in_100mA = message.body[2];
+  int16_t signed_current_in_100mA = mergeBytes(
+      low_current_byte_in_100mA,
+      high_current_byte_in_100mA
+  );
+  int16_t signed_current = signed_current_in_100mA / 10;
+  Store().logBmsInstantCurrent(signed_current);
   return;
 }
 
