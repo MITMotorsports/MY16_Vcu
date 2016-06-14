@@ -7,6 +7,7 @@ class Logger {
   public:
     // Accessor methods
     static Logger& readComputerInstance();
+    static Logger& readOnboardInstance();
     static Logger& readXbeeInstance();
 
     // Instance constructor
@@ -90,6 +91,7 @@ class Logger {
   private:
     // Accessor variables
     static Logger *computerInstance;
+    static Logger *onboardInstance;
     static Logger *xbeeInstance;
 
     // Instance variables
@@ -98,6 +100,7 @@ class Logger {
 };
 
 Logger& Computer();
+Logger& Onboard();
 Logger& Xbee();
 
 #endif // LOGGER_H
