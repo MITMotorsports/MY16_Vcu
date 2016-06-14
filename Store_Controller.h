@@ -38,6 +38,8 @@ class Store_Controller {
     // Motor controller readings
     void logMotorCurrent(Motor dir, int16_t current);
     int16_t readMotorCurrent(Motor dir);
+    void logMotorCurrentCommand(Motor dir, int16_t currentCommand);
+    int16_t readMotorCurrentCommand(Motor dir);
     void logMotorRpm(Motor dir, int16_t motor_rpm);
     int16_t readMotorRpm(Motor dir);
 
@@ -81,6 +83,7 @@ class Store_Controller {
 
     // Motor controller readings
     int16_t currents[MOTOR_LENGTH];
+    int16_t currentCommands[MOTOR_LENGTH];
 
     // BMS logging
     int16_t bmsTemp;

@@ -25,6 +25,7 @@ Store_Controller::Store_Controller()
 
   // Motor controller readings
   , currents{SENTINAL, SENTINAL}
+  , currentCommands{SENTINAL, SENTINAL}
 
   // BMS readings
   , bmsTemp(SENTINAL)
@@ -177,11 +178,24 @@ void Store_Controller::logMotorCurrent(Motor dir, int16_t current) {
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
     // Xbee().logFour("motor_current_cmd", motor_name, current, "units");
-    Computer().logFour("motor_current_cmd", motor_name, current, "units");
+    Computer().logFour("motor_current", motor_name, current, "amps?");
   }
 }
 int16_t Store_Controller::readMotorCurrent(Motor controller) {
   return currents[controller];
+}
+
+
+void Store_Controller::logMotorCurrentCommand(Motor dir, int16_t currentCommand) {
+  currentCommands[dir] = currentCommand;
+  String motor_name = (dir == RightMotor) ? "right" : "left";
+  if (Dispatcher().isEnabled()) {
+    // Xbee().logFour("motor_current_cmd", motor_name, current, "units");
+    Computer().logFour("motor_current_cmd", motor_name, currentCommand, "units");
+  }
+}
+int16_t Store_Controller::readMotorCurrentCommand(Motor controller) {
+  return currentCommands[controller];
 }
 
 void Store_Controller::logMotorRpm(Motor dir, int16_t rpm) {

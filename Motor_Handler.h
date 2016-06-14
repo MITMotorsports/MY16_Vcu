@@ -16,6 +16,7 @@ class Motor_Handler : public Handler {
     void handleLowVoltageMessage(Frame& message);
     void handleSpeedMessage(Frame& message);
     void handleCurrentMessage(Frame& message);
+    void handleCurrentCommandMessage(Frame& message);
     void handleWarningMessage(Frame& message);
     int motor_speed_to_motor_rpm(const int motor_speed);
     int motor_rpm_to_wheel_rpm(const int motor_speed);

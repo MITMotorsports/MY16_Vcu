@@ -30,14 +30,14 @@ void Motor_Handler::requestSingleVoltageUpdate() {
 }
 
 void Motor_Handler::requestPermanentUpdates(uint16_t can_id) {
-  requestPermanentUpdate(can_id, MOTOR_CURRENT_COMMAND_MODIFIER, 100);
+  // requestPermanentUpdate(can_id, MOTOR_CURRENT_COMMAND_MODIFIER, 100);
+  requestPermanentUpdate(can_id, MOTOR_CURRENT_MODIFIER, 101);
   requestPermanentUpdate(can_id, MOTOR_SPEED_MODIFIER, 103);
   requestPermanentUpdate(can_id, MOTOR_ERRORS_MODIFIER, 105);
   requestPermanentUpdate(can_id, MOTOR_HIGH_VOLTAGE_MODIFIER, 107);
   requestPermanentUpdate(can_id, MOTOR_LOW_VOLTAGE_MODIFIER, 109);
   // requestPermanentUpdate(can_id, MOTOR_TEMP_MODIFIER, 109);
   // requestPermanentUpdate(can_id, MOTOR_POSITION_MODIFIER, 113);
-  // requestPermanentUpdate(can_id, MOTOR_CURRENT_MODIFIER, 101);
 }
 
 void Motor_Handler::requestPermanentUpdate(uint16_t can_id, uint8_t msg_type, uint8_t time) {
@@ -66,9 +66,12 @@ void Motor_Handler::handleMessage(Frame& message) {
   }
 
   switch(message.body[0]) {
-    case MOTOR_CURRENT_COMMAND_MODIFIER:
+    case MOTOR_CURRENT_MODIFIER:
       handleCurrentMessage(message);
       break;
+    // case MOTOR_CURRENT_COMMAND_MODIFIER:
+    //   handleCurrentCommandMessage(message);
+    //   break;
     case MOTOR_SPEED_MODIFIER:
       handleSpeedMessage(message);
       break;
@@ -150,10 +153,15 @@ int Motor_Handler::wheel_rpm_to_kph(const int wheel_rpm) {
 }
 
 void Motor_Handler::handleCurrentMessage(Frame& message) {
-  // TODO convert this to an actual reading instead of just percent
   int16_t signed_current = mergeBytesOfSignedInt(message.body[1], message.body[2]);
   int16_t current = makePositive(signed_current);
   Store().logMotorCurrent(message.id == RIGHT_MOTOR_ID ? Store_Controller::RightMotor : Store_Controller::LeftMotor, current);
+
+}
+void Motor_Handler::handleCurrentCommandMessage(Frame& message) {
+  int16_t signed_current = mergeBytesOfSignedInt(message.body[1], message.body[2]);
+  int16_t current = makePositive(signed_current);
+  Store().logMotorCurrentCommand(message.id == RIGHT_MOTOR_ID ? Store_Controller::RightMotor : Store_Controller::LeftMotor, current);
 }
 
 void Motor_Handler::handleHighVoltageMessage(Frame& message) {
