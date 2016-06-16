@@ -11,8 +11,9 @@ const int REQUEST_PREFIX = 61; //0x3D
 const int TORQUE_PREFIX = 144; //0x90
 
 const int MOTOR_CURRENT_MODIFIER = 32; //0x20
-const int MOTOR_CURRENT_COMMAND_MODIFIER = 38; //0x26
+const int MOTOR_CURRENT_COMMAND_MODIFIER = 34; //0x22
 const int MOTOR_SPEED_MODIFIER = 48; //0x30
+const int MOTOR_TEMP_MODIFIER = 75; //0x4B
 const int MOTOR_ERRORS_MODIFIER = 143; //0x8F
 const int MOTOR_HIGH_VOLTAGE_MODIFIER = 224; //0xE0
 const int MOTOR_LOW_VOLTAGE_MODIFIER = 225; //0xE1
@@ -30,13 +31,14 @@ void Motor_Handler::requestSingleVoltageUpdate() {
 }
 
 void Motor_Handler::requestPermanentUpdates(uint16_t can_id) {
-  // requestPermanentUpdate(can_id, MOTOR_CURRENT_COMMAND_MODIFIER, 100);
+  requestPermanentUpdate(can_id, MOTOR_CURRENT_COMMAND_MODIFIER, 100);
   requestPermanentUpdate(can_id, MOTOR_CURRENT_MODIFIER, 101);
   requestPermanentUpdate(can_id, MOTOR_SPEED_MODIFIER, 103);
   requestPermanentUpdate(can_id, MOTOR_ERRORS_MODIFIER, 105);
   requestPermanentUpdate(can_id, MOTOR_HIGH_VOLTAGE_MODIFIER, 107);
   requestPermanentUpdate(can_id, MOTOR_LOW_VOLTAGE_MODIFIER, 109);
-  // requestPermanentUpdate(can_id, MOTOR_TEMP_MODIFIER, 109);
+  // Temp is less important
+  requestPermanentUpdate(can_id, MOTOR_TEMP_MODIFIER, 255);
   // requestPermanentUpdate(can_id, MOTOR_POSITION_MODIFIER, 113);
 }
 
@@ -69,9 +71,9 @@ void Motor_Handler::handleMessage(Frame& message) {
     case MOTOR_CURRENT_MODIFIER:
       handleCurrentMessage(message);
       break;
-    // case MOTOR_CURRENT_COMMAND_MODIFIER:
-    //   handleCurrentCommandMessage(message);
-    //   break;
+    case MOTOR_CURRENT_COMMAND_MODIFIER:
+      handleCurrentCommandMessage(message);
+      break;
     case MOTOR_SPEED_MODIFIER:
       handleSpeedMessage(message);
       break;

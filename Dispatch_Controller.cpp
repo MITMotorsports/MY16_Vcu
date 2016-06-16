@@ -94,6 +94,7 @@ void Dispatch_Controller::begin() {
   SoftTimer.add(&voltageTask);
 
   Computer().logOne("vehicle_power_on");
+  Onboard().logOne("vehicle_power_on");
   Xbee().logOne("vehicle_power_on");
 }
 
@@ -129,8 +130,9 @@ void Dispatch_Controller::disable() {
   Frame disableMessage = { .id=VCU_ID, .body={0}, .len=1};
   CAN().write(disableMessage);
 
-  Xbee().logOne("vehicle_disabled");
   Computer().logOne("vehicle_disabled");
+  Onboard().logOne("vehicle_disabled");
+  Xbee().logOne("vehicle_disabled");
 }
 
 void Dispatch_Controller::enable() {
@@ -147,8 +149,9 @@ void Dispatch_Controller::enable() {
   Frame enableMessage = { .id=VCU_ID, .body={1}, .len=1};
   CAN().write(enableMessage);
 
-  Xbee().logOne("vehicle_enabled");
   Computer().logOne("vehicle_enabled");
+  Onboard().logOne("vehicle_enabled");
+  Xbee().logOne("vehicle_enabled");
 }
 
 void Dispatch_Controller::dispatch() {

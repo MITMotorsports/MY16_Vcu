@@ -5,6 +5,7 @@
 
 // Value for indicating that there is not yet a reading
 const int16_t SENTINAL = -32768;
+const String NO_DIRECTION = "only";
 
 Store_Controller::Store_Controller() 
   // Can node logging
@@ -48,6 +49,7 @@ uint8_t Store_Controller::readAnalogThrottle() {
 
 void Store_Controller::logAnalogBrake(const uint8_t brake) {
   analogBrake = brake;
+  Onboard().logFour("brake_pressure", NO_DIRECTION, brake, "uint8_t");
 }
 uint8_t Store_Controller::readAnalogBrake() {
   return analogBrake;
@@ -56,7 +58,9 @@ uint8_t Store_Controller::readAnalogBrake() {
 void Store_Controller::logBrakeThrottleConflict(const bool conflict) {
   brakeThrottleConflict = conflict;
   if (conflict) {
+    // Breaks pattern because error that we want to catch and filter
     Onboard().logFive("brake_throttle_conflict", analogThrottle, "throttle", analogBrake, "brake");
+    Xbee().logFive("brake_throttle_conflict", analogThrottle, "throttle", analogBrake, "brake");
   }
 }
 bool Store_Controller::readBrakeThrottleConflict() {
@@ -65,7 +69,7 @@ bool Store_Controller::readBrakeThrottleConflict() {
 
 void Store_Controller::logOutputTorque(const int16_t torque) {
   outputTorque = torque;
-  Onboard().logTwo("torque_cmd", torque);
+  Onboard().logFour("torque_cmd", NO_DIRECTION, torque, "uint8_t");
 }
 int16_t Store_Controller::readOutputTorque() {
   return outputTorque;
@@ -132,8 +136,9 @@ void Store_Controller::logMotorErrors(Motor dir, uint16_t error_string) {
       String error_name = motor_faults[i];
       if (error_name != "under_voltage") {
         hasFault = true;
-        Xbee().logFour("motor_fault", motor_name, i, error_name);
-        Onboard().logFour("motor_fault", motor_name, i, error_name);
+        // Breaks pattern because error that we want to catch and filter
+        Xbee().logThree("motor_fault", motor_name, error_name);
+        Onboard().logThree("motor_fault", motor_name, error_name);
       }
     }
   }
@@ -154,6 +159,7 @@ void Store_Controller::logMotorErrors(Motor dir, uint16_t error_string) {
 void Store_Controller::logMotorHighVoltage(Motor dir, bool state) {
   highVoltage[dir] = state;
   String motor_name = (dir == RightMotor) ? "right" : "left";
+  // For debugging
   Onboard().logThree("motor_high_voltage", motor_name, state);
 }
 bool Store_Controller::readMotorHighVoltage(Motor dir) {
@@ -163,6 +169,7 @@ bool Store_Controller::readMotorHighVoltage(Motor dir) {
 void Store_Controller::logMotorLowVoltage(Motor dir, bool state) {
   lowVoltage[dir] = state;
   String motor_name = (dir == RightMotor) ? "right" : "left";
+  // For debugging
   Onboard().logThree("motor_low_voltage", motor_name, state);
 }
 bool Store_Controller::readMotorLowVoltage(Motor dir) {
@@ -185,7 +192,7 @@ void Store_Controller::logMotorCurrentCommand(Motor dir, int16_t currentCommand)
   currentCommands[dir] = currentCommand;
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
-    Onboard().logFour("motor_current_cmd", motor_name, currentCommand, "units");
+    Onboard().logFour("motor_current_cmd", motor_name, currentCommand, "motor_units");
   }
 }
 int16_t Store_Controller::readMotorCurrentCommand(Motor controller) {
@@ -226,6 +233,7 @@ void Store_Controller::logBmsFaults(uint8_t fault_string) {
   for(int i = 0; i < 8; i++) {
     if (bitRead(fault_string, i)) {
       String fault_name = bms_faults[i];
+      // Breaks pattern because error that we want to catch and filter
       Xbee().logTwo("bms_fault", fault_name);
       Onboard().logTwo("bms_fault", fault_name);
     }
@@ -246,6 +254,7 @@ void Store_Controller::logBmsWarnings(uint8_t warning_string) {
   for(int i = 0; i < 8; i++) {
     if (bitRead(warning_string, i)) {
       String warning_name = bms_warnings[i];
+      // Breaks pattern because error that we want to catch and filter
       Xbee().logTwo("bms_warning", warning_name);
       Onboard().logTwo("bms_warning", warning_name);
     }
@@ -254,7 +263,7 @@ void Store_Controller::logBmsWarnings(uint8_t warning_string) {
 
 void Store_Controller::logBmsTemp(const int16_t _bmsTemp) {
   bmsTemp = _bmsTemp;
-  Onboard().logThree("bms_temp", bmsTemp, "degrees");
+  Onboard().logFour("bms_temp", NO_DIRECTION, bmsTemp, "degrees");
 }
 int16_t Store_Controller::readBmsTemp() {
   return bmsTemp;
@@ -262,7 +271,7 @@ int16_t Store_Controller::readBmsTemp() {
 
 void Store_Controller::logBmsAveragedCurrent(int16_t _bmsAveragedCurrent) {
   bmsAveragedCurrent = _bmsAveragedCurrent;
-  Onboard().logThree("bms_averaged_current", bmsAveragedCurrent, "amps");
+  Onboard().logFour("bms_averaged_current", NO_DIRECTION, bmsAveragedCurrent, "amps");
 }
 int16_t Store_Controller::readBmsAveragedCurrent() {
   return bmsAveragedCurrent;
@@ -270,7 +279,7 @@ int16_t Store_Controller::readBmsAveragedCurrent() {
 
 void Store_Controller::logBmsInstantCurrent(int16_t _bmsInstantCurrent) {
   bmsInstantCurrent = _bmsInstantCurrent;
-  Onboard().logThree("bms_instant_current", bmsInstantCurrent, "amps");
+  Onboard().logFour("bms_instant_current", NO_DIRECTION, bmsInstantCurrent, "amps");
 }
 int16_t Store_Controller::readBmsInstantCurrent() {
   return bmsInstantCurrent;
@@ -278,7 +287,7 @@ int16_t Store_Controller::readBmsInstantCurrent() {
 
 void Store_Controller::logBmsVoltage(const int16_t _bmsVoltage) {
   bmsVoltage = _bmsVoltage;
-  Onboard().logThree("bms_voltage", bmsVoltage, "volts");
+  Onboard().logFour("bms_voltage", NO_DIRECTION, bmsVoltage, "volts");
 }
 int16_t Store_Controller::readBmsVoltage() {
   return bmsVoltage;
@@ -286,6 +295,7 @@ int16_t Store_Controller::readBmsVoltage() {
 
 void Store_Controller::logBmsSoc(const int16_t _soc) {
   soc = _soc;
+  Onboard().logFour("bms_soc", NO_DIRECTION, soc, "percent");
 }
 int16_t Store_Controller::readBmsSoc() {
   return soc;
