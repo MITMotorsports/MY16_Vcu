@@ -41,6 +41,12 @@ void Bms_Handler::handleVoltageMessage(Frame& message) {
   // If voltage ever goes above 32767 volts, use a different method
   uint16_t total_volts = mergeBytes(message.body[1], message.body[0]);
   Store().logBmsVoltage(total_volts);
+
+  uint8_t min_cell_id  = message.body[3];
+  String cell_id_string = "id_" + String(min_cell_id);
+  uint8_t min_cell_voltage  = message.body[2];
+  Xbee().logFour("min_cell_voltage", cell_id_string, min_cell_voltage, "100_millivolts");
+  Onboard().logFour("min_cell_voltage", cell_id_string, min_cell_voltage, "100_millivolts");
   return;
 }
 
@@ -53,6 +59,12 @@ void Bms_Handler::handleCurrentMessage(Frame& message) {
 void Bms_Handler::handleTempMessage(Frame& message) {
   uint8_t temp = message.body[0];
   Store().logBmsTemp(temp);
+
+  uint8_t max_cell_id  = message.body[5];
+  String cell_id_string = "id_" + String(max_cell_id);
+  uint8_t max_cell_temp  = message.body[4];
+  Xbee().logFour("max_cell_temp", cell_id_string, max_cell_temp, "degrees");
+  Onboard().logFour("max_cell_temp", cell_id_string, max_cell_temp, "degrees");
 }
 
 void Bms_Handler::handleSocMessage(Frame& message) {
