@@ -3,9 +3,11 @@
 ### For detailled explanations about all the avalaible options,
 ### please refer to https://github.com/sudar/Arduino-Makefile/blob/master/arduino-mk-vars.md
 
-### PROJECT_DIR
+UNAME_S := $(shell uname -s)
+$(info $$uname is [${UNAME_S}])
+
 ### This is the path to where you have created/cloned your project
-PROJECT_DIR 			:= $(realpath $(abspath $(lastword $(MAKEFILE_LIST)))/../../..)
+PROJECT_DIR 			:= $(abspath $(abspath $(lastword $(MAKEFILE_LIST)))/../../..)
 
 ### AVR_GCC_VERSION
 ### Check if the version is equal or higher than 4.9
@@ -42,11 +44,20 @@ MONITOR_BAUDRATE  = 115200
 
 ### AVR_TOOLS_DIR
 ### Path to the AVR tools directory such as avr-gcc, avr-g++, etc.
-AVR_TOOLS_DIR     = /usr/local
+AVR_TOOLS_DIR := $(abspath $(shell which avr-g++)/..)
+$(info $$AVR_TOOLS_DIR is [${LOC}])
 
 ### AVRDDUDE
 ### Path to avrdude directory.
+AVRDUDE          := $(shell which avrdude)
+$(info $$AVRDUDE is [${AVRDUDE}])
 AVRDUDE          = /usr/local/CrossPack-AVR/bin/avrdude
+
+### MONITOR_PORT
+### The port your board is connected to. Using an '*' tries all the ports and finds the right one.
+### TODO make this cross platform
+MONITOR_PORT      = /dev/tty.usbserial*
+
 
 ### CFLAGS_STD
 CFLAGS_STD        = -std=gnu11
@@ -62,10 +73,6 @@ CXXFLAGS         = -pedantic -Wall -Wextra
 ifeq "$(AVR_GCC_VERSION)" "1"
     CXXFLAGS += -fdiagnostics-color
 endif
-
-### MONITOR_PORT
-### The port your board is connected to. Using an '*' tries all the ports and finds the right one.
-MONITOR_PORT      = /dev/tty.usbserial*
 
 ### OBJDIR
 ### This is were you put the binaries you just compile using 'make'
