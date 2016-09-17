@@ -17,5 +17,12 @@ const int MC_ENABLE_PIN_2 = 67; // pin_84
 const int MC_ENABLE_PIN_3 = 68; // pin_83
 const int MC_ENABLE_PIN_4 = 69; // pin_82
 
+const int BMS_IN = 22; // PA0, AD0, pin_78
+const int IMD_IN = 23; // PA1, AD1, pin_77
+const int VCU_IN = 24; // PA2, AD2, pin_76
+const int TEMP_SENSE_IN = 25; // PA3, AD3, pin_75
+const int STOP_BUTTON_IN = 26; // PA4, AD4, pin_74
+const int BMS_POWERED_IN = 27; // PA5, AD5, pin_73
+
 #endif
 

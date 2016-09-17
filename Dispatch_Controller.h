@@ -13,12 +13,15 @@ class Dispatch_Controller {
     void disable();
     void enable();
     void dispatch();
+    void handleFaultPins();
     bool isEnabled();
     void requestMotorVoltage();
     void requestLeftMotorUpdates();
     void requestRightMotorUpdates();
   private:
     Dispatch_Controller();
+    void initializeFaultPins();
+    void handleSingleFaultPin(int pin, String pinName);
     static Dispatch_Controller *instance;
     Rtd_Handler rtd_handler;
     Can_Node_Handler can_node_handler;

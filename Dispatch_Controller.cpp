@@ -88,6 +88,8 @@ void Dispatch_Controller::begin() {
   bms_handler.begin();
   motor_handler.begin();
 
+  initializeFaultPins();
+
   // Start event loop
   SoftTimer.add(&stepTask);
   // Start MC requests
@@ -96,6 +98,7 @@ void Dispatch_Controller::begin() {
   Computer().logOne("vehicle_power_on");
   Onboard().logOne("vehicle_power_on");
   Xbee().logOne("vehicle_power_on");
+
 }
 
 // Must define instance prior to use
@@ -165,4 +168,29 @@ void Dispatch_Controller::dispatch() {
     can_node_handler.handleMessage(frame);
     motor_handler.handleMessage(frame);
   }
+}
+
+void Dispatch_Controller::handleFaultPins() {
+  handleSingleFaultPin(BMS_IN, "BMS");
+  handleSingleFaultPin(IMD_IN, "IMD");
+  handleSingleFaultPin(VCU_IN, "VCU");
+  handleSingleFaultPin(TEMP_SENSE_IN, "TEMP_SENSE");
+  handleSingleFaultPin(STOP_BUTTON_IN, "STOP_BUTTON");
+  handleSingleFaultPin(BMS_POWERED_IN, "BMS_NOT_POWERED");
+}
+
+void Dispatch_Controller::handleSingleFaultPin(int pin, String pinName) {
+  int fault = digitalRead(pin);
+  if (fault == LOW) {
+    Onboard().logTwo("LATCHED_FAULT", pinName);
+  }
+}
+
+void Dispatch_Controller::initializeFaultPins() {
+  pinMode(BMS_IN, INPUT);
+  pinMode(IMD_IN, INPUT);
+  pinMode(VCU_IN, INPUT);
+  pinMode(TEMP_SENSE_IN, INPUT);
+  pinMode(STOP_BUTTON_IN, INPUT);
+  pinMode(BMS_POWERED_IN, INPUT);
 }

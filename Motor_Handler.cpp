@@ -167,8 +167,9 @@ void Motor_Handler::handleCurrentCommandMessage(Frame& message) {
 }
 
 void Motor_Handler::handleHighVoltageMessage(Frame& message) {
-  // Don't worry about this message if car already enabled
   if (Dispatcher().isEnabled()) {
+    // If car is already enabled, nothing needs to be done 
+    // because motors are still at correct voltage.
     return;
   }
   Motor thisMotor = Store().toMotor(message.id);
@@ -189,13 +190,15 @@ void Motor_Handler::handleHighVoltageMessage(Frame& message) {
 }
 
 void Motor_Handler::handleLowVoltageMessage(Frame& message) {
-  // Don't worry about this message if car disabled
-  if (!Dispatcher().isEnabled()) {
+  Motor thisMotor = Store().toMotor(message.id);
+  bool hasVoltage = (message.body[1] == 1);
+
+  if (!Dispatcher().isEnabled() && !hasVoltage) {
+    // If car is already disabled, we need to check the pins 
+    // to see what the fault that was triggered was.
+    Dispatcher().handleFaultPins();
     return;
   }
-  Motor thisMotor = Store().toMotor(message.id);
-
-  bool hasVoltage = (message.body[1] == 1);
   if (hasVoltage != Store().readMotorLowVoltage(thisMotor)) {
     Store().logMotorLowVoltage(thisMotor, hasVoltage);
   }
