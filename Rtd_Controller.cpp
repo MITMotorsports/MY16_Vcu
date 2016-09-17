@@ -21,8 +21,13 @@ void Rtd_Controller::begin() {
   pinMode(SHUTDOWN_CIRCUIT_PIN, OUTPUT);
   digitalWrite(SHUTDOWN_CIRCUIT_PIN, HIGH);
 
-  pinMode(MC_ENABLE_PIN, OUTPUT);
-  pinMode(MC_ENABLE_BOOSTER_PIN, OUTPUT);
+  pinMode(BSPD_LATCHED_PIN, OUTPUT);
+  digitalWrite(BSPD_LATCHED_PIN, HIGH);
+
+  pinMode(MC_ENABLE_PIN_1, OUTPUT);
+  pinMode(MC_ENABLE_PIN_2, OUTPUT);
+  pinMode(MC_ENABLE_PIN_3, OUTPUT);
+  pinMode(MC_ENABLE_PIN_4, OUTPUT);
 
   setEnablePins(LOW);
 
@@ -55,12 +60,14 @@ void Rtd_Controller::disable() {
 
 void Rtd_Controller::setEnablePins(uint8_t direction) {
   if (direction == LOW) {
-    // Set pin 1 and pin 4 to low, all others stay the same
-    PORTK = PORTK & 0b11101101;
+    // Set pins 4-7 to low, all others stay the same
+    // (note that pins are ordered as 0b7...0)
+    PORTK = PORTK & 0b00001111;
   }
   else if (direction == HIGH) {
-    // Set pin 1 and pin 4 to high, all others stay the same
-    PORTK = PORTK | 0b00010010;
+    // Set pins 4-7 to high, all others stay the same
+    // (note that pins are ordered as 0b7...0)
+    PORTK = PORTK | 0b11110000;
   }
 }
 
