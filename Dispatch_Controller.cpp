@@ -14,7 +14,7 @@ const int BLINK_LIGHT = 0;
 const int ENABLE_LIGHT = 1;
 const int SHUTDOWN_LIGHT = 2;
 
-const uint16_t PRECHARGE_DELAY = 17000;
+const uint16_t PRECHARGE_DELAY = 15000;
 
 Dispatch_Controller::Dispatch_Controller()
 : rtd_handler(Rtd_Handler()),
@@ -191,12 +191,11 @@ void Dispatch_Controller::dispatch() {
 void Dispatch_Controller::handleFaultPins() {
   bool bmsFault = handleSingleFaultPin(BMS_IN, "BMS");
   bool imdFault = handleSingleFaultPin(IMD_IN, "IMD");
-  bool vcuFault = handleSingleFaultPin(VCU_IN, "VCU");
   bool tempFault = handleSingleFaultPin(TEMP_SENSE_IN, "TEMP_SENSE");
   bool stopFault = handleSingleFaultPin(STOP_BUTTON_IN, "STOP_BUTTON");
   bool bmsPowerFault = handleSingleFaultPin(BMS_POWERED_IN, "BMS_NOT_POWERED");
 
-  bool hasFault = bmsFault || imdFault || vcuFault || tempFault || stopFault || bmsPowerFault;
+  bool hasFault = bmsFault || imdFault || tempFault || stopFault || bmsPowerFault;
 
   bool prevHasFault = Store().readHasFault();
   if (hasFault && !prevHasFault) {
@@ -214,6 +213,8 @@ void Dispatch_Controller::handleFaultPins() {
     // Tractive voltage is now live!
 
     // Set a timer to blink light after precharge
+    SoftTimer.remove(&requestBlinkDashLight);
+    requestBlinkDashLight.startDelayed();
     SoftTimer.add(&requestBlinkDashLight);
   }
   Store().logHasFault(hasFault);
