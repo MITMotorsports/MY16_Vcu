@@ -8,7 +8,7 @@ const int STARBOARD_THROTTLE_IDX = 0;
 const int PORT_THROTTLE_IDX = 1;
 const int BRAKE_IDX = 2;
 
-const float THROTTLE_SCALING_FACTOR = 0.5;
+const float THROTTLE_SCALING_FACTOR = 0.7;
 
 const uint8_t TORQUE_PREFIX = 144; //0x90
 
