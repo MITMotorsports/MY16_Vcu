@@ -45,7 +45,6 @@ void Can_Node_Handler::handleMessage(Frame& message) {
     analogThrottle = 0;
     plausible = false;
   }
-  Store().logAnalogThrottle(analogThrottle);
 
   // Handle brake messages
   uint8_t analogBrake = message.body[BRAKE_IDX];
@@ -56,7 +55,9 @@ void Can_Node_Handler::handleMessage(Frame& message) {
     brakeLightOn();
   }
 
+  // Log analog sensors
   Store().logAnalogBrake(analogBrake);
+  Store().logAnalogThrottle(analogThrottle);
 
   // Don't do torque commands if car is disabled!
   if(!Dispatcher().isEnabled()) {
@@ -82,7 +83,7 @@ void Can_Node_Handler::handleMessage(Frame& message) {
   const float throttleScaled = ((float)throttleExtended) * THROTTLE_SCALING_FACTOR;
   const int16_t outputTorque = (int16_t) (round(throttleScaled));
 
-  // Log and write torque commands
+  // Write torque commands
   writeThrottleMessages(outputTorque);
 }
 
@@ -154,7 +155,4 @@ void Can_Node_Handler::writeThrottleMessages(const int16_t throttle) {
     .len=3
   };
   CAN().write(rightFrame);
-
-  // Log output torque as a raw value
-  Store().logOutputTorque(throttle);
 }

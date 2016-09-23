@@ -8,17 +8,11 @@ void Bms_Handler::begin() {
 
 void Bms_Handler::handleMessage(Frame& message) {
   switch(message.id) {
-    case BMS_SUMMARY_ID:
-      handleSummaryMessage(message);
-      break;
     case BMS_FAULT_ID:
       handleFaultMessage(message);
       break;
     case BMS_VOLTAGE_ID:
       handleVoltageMessage(message);
-      break;
-    case BMS_CURRENT_ID:
-      handleCurrentMessage(message);
       break;
     case BMS_TEMP_ID:
       handleTempMessage(message);
@@ -50,12 +44,6 @@ void Bms_Handler::handleVoltageMessage(Frame& message) {
   return;
 }
 
-void Bms_Handler::handleCurrentMessage(Frame& message) {
-  int16_t signed_current = mergeBytes(message.body[1], message.body[0]);
-  Store().logBmsAveragedCurrent(signed_current);
-  return;
-}
-
 void Bms_Handler::handleTempMessage(Frame& message) {
   uint8_t temp = message.body[0];
   Store().logBmsTemp(temp);
@@ -70,19 +58,6 @@ void Bms_Handler::handleTempMessage(Frame& message) {
 void Bms_Handler::handleSocMessage(Frame& message) {
   uint8_t soc = message.body[0];
   Store().logBmsSoc(soc);
-}
-
-void Bms_Handler::handleSummaryMessage(Frame& message) {
-
-  uint8_t low_current_byte_in_100mA = message.body[3];
-  uint8_t high_current_byte_in_100mA = message.body[2];
-  int16_t signed_current_in_100mA = mergeBytes(
-      low_current_byte_in_100mA,
-      high_current_byte_in_100mA
-  );
-  int16_t signed_current = signed_current_in_100mA / 10;
-  Store().logBmsInstantCurrent(signed_current);
-  return;
 }
 
 void Bms_Handler::handleFaultMessage(Frame& message) {

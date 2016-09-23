@@ -11,6 +11,9 @@ class Store_Controller {
     enum Wheel {FrontRightWheel, FrontLeftWheel, RearRightWheel, RearLeftWheel, WHEEL_LENGTH};
     enum Motor {LeftMotor, RightMotor, MOTOR_LENGTH};
 
+    void logHasFault(bool hasFault);
+    bool readHasFault();
+
     // Can node readings
     void logAnalogThrottle(uint8_t throttle);
     uint8_t readAnalogThrottle();
@@ -18,8 +21,6 @@ class Store_Controller {
     uint8_t readAnalogBrake();
     void logBrakeThrottleConflict(bool conflict);
     bool readBrakeThrottleConflict();
-    void logOutputTorque(int16_t torque);
-    int16_t readOutputTorque();
 
     // Speeds
     void logSpeed(Wheel wheel, int16_t wheel_rpm);
@@ -30,16 +31,10 @@ class Store_Controller {
     bool readMotorResponse(Motor dir);
     void logMotorErrors(Motor dir, uint16_t error_string);
     bool readMotorErrors(Motor dir);
-    void logMotorHighVoltage(Motor dir, bool state);
-    bool readMotorHighVoltage(Motor dir);
-    void logMotorLowVoltage(Motor dir, bool state);
-    bool readMotorLowVoltage(Motor dir);
 
     // Motor controller readings
-    void logMotorCurrent(Motor dir, int16_t current);
-    int16_t readMotorCurrent(Motor dir);
-    void logMotorCurrentCommand(Motor dir, int16_t currentCommand);
-    int16_t readMotorCurrentCommand(Motor dir);
+    void logMotorTorqueCommand(Motor dir, int16_t torqueCommand);
+    int16_t readMotorTorqueCommand(Motor dir);
     void logMotorRpm(Motor dir, int16_t motor_rpm);
     int16_t readMotorRpm(Motor dir);
 
@@ -54,10 +49,6 @@ class Store_Controller {
     // BMS readings
     void logBmsTemp(int16_t temp);
     int16_t readBmsTemp();
-    void logBmsAveragedCurrent(int16_t current);
-    int16_t readBmsAveragedCurrent();
-    void logBmsInstantCurrent(int16_t current);
-    int16_t readBmsInstantCurrent();
     void logBmsVoltage(int16_t volts);
     int16_t readBmsVoltage();
     void logBmsSoc(int16_t percent);
@@ -67,11 +58,13 @@ class Store_Controller {
     Store_Controller();
     static Store_Controller *instance;
 
+    // Fault logging
+    bool hasFault;
+
     // Can node logging
     uint8_t analogThrottle;
     uint8_t analogBrake;
     bool brakeThrottleConflict;
-    int16_t outputTorque;
 
     // Wheel logging
     int16_t speeds[WHEEL_LENGTH];
@@ -79,18 +72,13 @@ class Store_Controller {
     // Motor controller states
     bool responses[MOTOR_LENGTH];
     bool errors[MOTOR_LENGTH];
-    bool highVoltage[MOTOR_LENGTH];
-    bool lowVoltage[MOTOR_LENGTH];
     int16_t motorRpm[MOTOR_LENGTH];
 
     // Motor controller readings
-    int16_t currents[MOTOR_LENGTH];
-    int16_t currentCommands[MOTOR_LENGTH];
+    int16_t torqueCommands[MOTOR_LENGTH];
 
     // BMS logging
     int16_t bmsTemp;
-    int16_t bmsAveragedCurrent;
-    int16_t bmsInstantCurrent;
     int16_t bmsVoltage;
     int16_t soc;
 };

@@ -10,6 +10,10 @@
 #include "Store_Controller.h"
 #include "Logger.h"
 
+const int BLINK_LIGHT = 0;
+const int ENABLE_LIGHT = 1;
+const int SHUTDOWN_LIGHT = 2;
+
 Dispatch_Controller::Dispatch_Controller()
 : rtd_handler(Rtd_Handler()),
   can_node_handler(Can_Node_Handler()),
@@ -21,21 +25,23 @@ Dispatch_Controller::Dispatch_Controller()
 
 }
 
-// Slight hack: invoke static member accessor function in non-member function
-// pointer to work with SoftTimer's bullshit.
-// TODO: Tighten this loop if perf problems arise
-
-// I deeply apologize for the next forty lines of code.
-// May Stroustroup forgive me.
+// Handle messages as fast as possible
 void dispatchPointer(Task*) {
   Dispatcher().dispatch();
 }
 Task stepTask(0, dispatchPointer);
 
-void requestVoltage(Task*) {
-  Dispatcher().requestMotorVoltage();
+// Check for faults at 10Hz
+void checkFaults(Task*) {
+  Dispatcher().handleFaultPins();
 }
-Task voltageTask(500, requestVoltage);
+Task checkFaultsTask(100, checkFaults);
+
+// Request message from both motors
+void requestMotorHeartbeat(Task*) {
+  Dispatcher().requestMotorHeartbeat();
+}
+Task heartbeatTask(100, requestMotorHeartbeat);
 
 bool requestPermanentUpdatesLeft(Task*) {
   Dispatcher().requestLeftMotorUpdates();
@@ -49,16 +55,26 @@ bool requestPermanentUpdatesRight(Task*) {
 }
 DelayRun requestRightMotorUpdatesTask(100, requestPermanentUpdatesRight);
 
-void Dispatch_Controller::requestMotorVoltage() {
+bool blinkDashLight(Task*) {
+  if (!Dispatcher().isEnabled()) {
+    // Only send light if not enabled
+    Frame dashMessage = { .id=VCU_ID, .body={BLINK_LIGHT}, .len=1};
+    CAN().write(dashMessage);
+  }
+  return false;
+}
+DelayRun requestBlinkDashLight(100, blinkDashLight);
+
+void Dispatch_Controller::requestMotorHeartbeat() {
   bool bothMcOn =
     Store().readMotorResponse(Store().RightMotor) &&
     Store().readMotorResponse(Store().LeftMotor);
 
   if (!bothMcOn) {
-    motor_handler.requestSingleVoltageUpdate();
+    motor_handler.requestHeartbeat();
   }
   else {
-    SoftTimer.remove(&voltageTask);
+    SoftTimer.remove(&heartbeatTask);
     SoftTimer.add(&requestLeftMotorUpdatesTask);
     SoftTimer.add(&requestRightMotorUpdatesTask);
   }
@@ -92,8 +108,9 @@ void Dispatch_Controller::begin() {
 
   // Start event loop
   SoftTimer.add(&stepTask);
+  SoftTimer.add(&checkFaultsTask);
   // Start MC requests
-  SoftTimer.add(&voltageTask);
+  SoftTimer.add(&heartbeatTask);
 
   Computer().logOne("vehicle_power_on");
   Onboard().logOne("vehicle_power_on");
@@ -130,12 +147,11 @@ void Dispatch_Controller::disable() {
   // Actually disable
   RTD().disable();
 
-  Frame disableMessage = { .id=VCU_ID, .body={0}, .len=1};
+  Frame disableMessage = { .id=VCU_ID, .body={BLINK_LIGHT}, .len=1};
   CAN().write(disableMessage);
 
-  Computer().logOne("vehicle_disabled");
-  Onboard().logOne("vehicle_disabled");
-  Xbee().logOne("vehicle_disabled");
+  Computer().logOne("vehicle_disabled_or_shutdown");
+  Onboard().logOne("vehicle_disabled_or_shutdown");
 }
 
 void Dispatch_Controller::enable() {
@@ -149,12 +165,11 @@ void Dispatch_Controller::enable() {
   RTD().enable();
 
   // Notify listeners of enable
-  Frame enableMessage = { .id=VCU_ID, .body={1}, .len=1};
+  Frame enableMessage = { .id=VCU_ID, .body={ENABLE_LIGHT}, .len=1};
   CAN().write(enableMessage);
 
   Computer().logOne("vehicle_enabled");
   Onboard().logOne("vehicle_enabled");
-  Xbee().logOne("vehicle_enabled");
 }
 
 void Dispatch_Controller::dispatch() {
@@ -171,19 +186,43 @@ void Dispatch_Controller::dispatch() {
 }
 
 void Dispatch_Controller::handleFaultPins() {
-  handleSingleFaultPin(BMS_IN, "BMS");
-  handleSingleFaultPin(IMD_IN, "IMD");
-  handleSingleFaultPin(VCU_IN, "VCU");
-  handleSingleFaultPin(TEMP_SENSE_IN, "TEMP_SENSE");
-  handleSingleFaultPin(STOP_BUTTON_IN, "STOP_BUTTON");
-  handleSingleFaultPin(BMS_POWERED_IN, "BMS_NOT_POWERED");
+  bool bmsFault = handleSingleFaultPin(BMS_IN, "BMS");
+  bool imdFault = handleSingleFaultPin(IMD_IN, "IMD");
+  bool vcuFault = handleSingleFaultPin(VCU_IN, "VCU");
+  bool tempFault = handleSingleFaultPin(TEMP_SENSE_IN, "TEMP_SENSE");
+  bool stopFault = handleSingleFaultPin(STOP_BUTTON_IN, "STOP_BUTTON");
+  bool bmsPowerFault = handleSingleFaultPin(BMS_POWERED_IN, "BMS_NOT_POWERED");
+
+  bool hasFault = bmsFault || imdFault || vcuFault || tempFault || stopFault || bmsPowerFault;
+
+  bool prevHasFault = Store().readHasFault();
+  if (hasFault && !prevHasFault) {
+    // Car has shutdown :(
+    // First logically disable
+    Dispatcher().disable();
+
+    // Then turn light off
+    Frame dashMessage = { .id=VCU_ID, .body={SHUTDOWN_LIGHT}, .len=1};
+    CAN().write(dashMessage);
+
+    // Cancel precharge blink just in case
+    SoftTimer.remove(&requestBlinkDashLight);
+  } else if (!hasFault && prevHasFault) {
+    // Tractive voltage is now live!
+
+    // Set a timer to blink light after precharge
+    SoftTimer.add(&requestBlinkDashLight);
+  }
+  Store().logHasFault(hasFault);
 }
 
-void Dispatch_Controller::handleSingleFaultPin(int pin, String pinName) {
+bool Dispatch_Controller::handleSingleFaultPin(int pin, String pinName) {
   int fault = digitalRead(pin);
   if (fault == LOW) {
     Onboard().logTwo("LATCHED_FAULT", pinName);
+    return true;
   }
+  return false;
 }
 
 void Dispatch_Controller::initializeFaultPins() {

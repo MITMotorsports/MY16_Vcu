@@ -11,10 +11,8 @@ class Bms_Handler : public Handler {
     int16_t mergeBytes(unsigned char low, unsigned char high);
     void handleFaultMessage(Frame& message);
     void handleVoltageMessage(Frame& message);
-    void handleCurrentMessage(Frame& message);
     void handleTempMessage(Frame& message);
     void handleSocMessage(Frame& message);
-    void handleSummaryMessage(Frame& message);
 };
 
 #endif // BMS_HANDLER_H

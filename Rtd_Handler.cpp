@@ -16,15 +16,6 @@ void Rtd_Handler::handleMessage(Frame& frame) {
     return;
   }
   else {
-    // Check all three conditions for legal enable
-    bool bothMotorsAlive =
-      Store().readMotorHighVoltage(Store().LeftMotor) &&
-      Store().readMotorHighVoltage(Store().RightMotor);
-    if (!bothMotorsAlive) {
-      // Car still in shutdown state, do nothing
-      return;
-    }
-
     bool brakePressed = Store().readAnalogBrake() >= BRAKE_PUSHED_CUTOFF;
     bool isEnableMessage = frame.body[0];
     if (isEnableMessage) {

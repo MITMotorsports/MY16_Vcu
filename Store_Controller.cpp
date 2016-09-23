@@ -8,11 +8,13 @@ const int16_t SENTINAL = -32768;
 const String NO_DIRECTION = "only";
 
 Store_Controller::Store_Controller() 
+  // Fault logging
+  : hasFault(true)
+
   // Can node logging
-  : analogThrottle(0)
+  , analogThrottle(0)
   , analogBrake(0)
   , brakeThrottleConflict(false)
-  , outputTorque(0)
 
   // Wheel logging
   , speeds{SENTINAL, SENTINAL, SENTINAL, SENTINAL}
@@ -20,28 +22,33 @@ Store_Controller::Store_Controller()
   // Motor controller states
   , responses{false, false}
   , errors{false, false}
-  , highVoltage{false, false}
-  , lowVoltage{false, false}
   , motorRpm{SENTINAL, SENTINAL}
 
   // Motor controller readings
-  , currents{SENTINAL, SENTINAL}
-  , currentCommands{SENTINAL, SENTINAL}
+  , torqueCommands{SENTINAL, SENTINAL}
 
   // BMS readings
   , bmsTemp(SENTINAL)
-  , bmsAveragedCurrent(SENTINAL)
-  , bmsInstantCurrent(SENTINAL)
   , bmsVoltage(SENTINAL)
   , soc(SENTINAL)
 {
   // No initialization required
 }
 
+/********************* Fault Logging *************************/
+
+void Store_Controller::logHasFault(bool fault) {
+  hasFault = fault;
+}
+bool Store_Controller::readHasFault() {
+  return hasFault;
+}
+
 /********************* Can Node Logging **********************/
 
 void Store_Controller::logAnalogThrottle(const uint8_t throttle) {
   analogThrottle = throttle;
+  Onboard().logFour("throttle_position", NO_DIRECTION, throttle, "uint8_t");
 }
 uint8_t Store_Controller::readAnalogThrottle() {
   return analogThrottle;
@@ -60,19 +67,10 @@ void Store_Controller::logBrakeThrottleConflict(const bool conflict) {
   if (conflict) {
     // Breaks pattern because error that we want to catch and filter
     Onboard().logFive("brake_throttle_conflict", analogThrottle, "throttle", analogBrake, "brake");
-    Xbee().logFive("brake_throttle_conflict", analogThrottle, "throttle", analogBrake, "brake");
   }
 }
 bool Store_Controller::readBrakeThrottleConflict() {
   return brakeThrottleConflict;
-}
-
-void Store_Controller::logOutputTorque(const int16_t torque) {
-  outputTorque = torque;
-  Onboard().logFour("torque_cmd", NO_DIRECTION, torque, "uint8_t");
-}
-int16_t Store_Controller::readOutputTorque() {
-  return outputTorque;
 }
 
 /******************** Wheel Speed Logging *********************/
@@ -156,54 +154,22 @@ void Store_Controller::logMotorErrors(Motor dir, uint16_t error_string) {
   }
 }
 
-void Store_Controller::logMotorHighVoltage(Motor dir, bool state) {
-  highVoltage[dir] = state;
-  String motor_name = (dir == RightMotor) ? "right" : "left";
-  // For debugging
-  Onboard().logThree("motor_high_voltage", motor_name, state);
-}
-bool Store_Controller::readMotorHighVoltage(Motor dir) {
-  return highVoltage[dir];
-}
-
-void Store_Controller::logMotorLowVoltage(Motor dir, bool state) {
-  lowVoltage[dir] = state;
-  String motor_name = (dir == RightMotor) ? "right" : "left";
-  // For debugging
-  Onboard().logThree("motor_low_voltage", motor_name, state);
-}
-bool Store_Controller::readMotorLowVoltage(Motor dir) {
-  return lowVoltage[dir];
-}
-
-void Store_Controller::logMotorCurrent(Motor dir, int16_t current) {
-  currents[dir] = current;
+void Store_Controller::logMotorTorqueCommand(Motor dir, int16_t torqueCommand) {
+  torqueCommands[dir] = torqueCommand;
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
-    Onboard().logFour("motor_current", motor_name, current, "motor_units");
+    Onboard().logFour("motor_torque_cmd", motor_name, torqueCommand, "uint16_t");
   }
 }
-int16_t Store_Controller::readMotorCurrent(Motor controller) {
-  return currents[controller];
-}
-
-
-void Store_Controller::logMotorCurrentCommand(Motor dir, int16_t currentCommand) {
-  currentCommands[dir] = currentCommand;
-  String motor_name = (dir == RightMotor) ? "right" : "left";
-  if (Dispatcher().isEnabled()) {
-    Onboard().logFour("motor_current_cmd", motor_name, currentCommand, "motor_units");
-  }
-}
-int16_t Store_Controller::readMotorCurrentCommand(Motor controller) {
-  return currentCommands[controller];
+int16_t Store_Controller::readMotorTorqueCommand(Motor controller) {
+  return torqueCommands[controller];
 }
 
 void Store_Controller::logMotorRpm(Motor dir, int16_t rpm) {
   motorRpm[dir] = rpm;
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
-    Onboard().logFour("motor_rpm", motor_name, rpm, "rpm");
+    Onboard().logFour("motor_rpm", motor_name, rpm, "motor_units");
   }
 }
 int16_t Store_Controller::readMotorRpm(Motor controller) {
@@ -269,22 +235,6 @@ int16_t Store_Controller::readBmsTemp() {
   return bmsTemp;
 }
 
-void Store_Controller::logBmsAveragedCurrent(int16_t _bmsAveragedCurrent) {
-  bmsAveragedCurrent = _bmsAveragedCurrent;
-  Onboard().logFour("bms_averaged_current", NO_DIRECTION, bmsAveragedCurrent, "amps");
-}
-int16_t Store_Controller::readBmsAveragedCurrent() {
-  return bmsAveragedCurrent;
-}
-
-void Store_Controller::logBmsInstantCurrent(int16_t _bmsInstantCurrent) {
-  bmsInstantCurrent = _bmsInstantCurrent;
-  Onboard().logFour("bms_instant_current", NO_DIRECTION, bmsInstantCurrent, "amps");
-}
-int16_t Store_Controller::readBmsInstantCurrent() {
-  return bmsInstantCurrent;
-}
-
 void Store_Controller::logBmsVoltage(const int16_t _bmsVoltage) {
   bmsVoltage = _bmsVoltage;
   Onboard().logFour("bms_voltage", NO_DIRECTION, bmsVoltage, "volts");
@@ -300,11 +250,6 @@ void Store_Controller::logBmsSoc(const int16_t _soc) {
 int16_t Store_Controller::readBmsSoc() {
   return soc;
 }
-
-
-
-
-
 
 /********************* Private Methods **************************/
 Store_Controller* Store_Controller::instance = NULL;
