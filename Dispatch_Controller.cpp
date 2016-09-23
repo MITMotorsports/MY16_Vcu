@@ -14,6 +14,8 @@ const int BLINK_LIGHT = 0;
 const int ENABLE_LIGHT = 1;
 const int SHUTDOWN_LIGHT = 2;
 
+const uint16_t PRECHARGE_DELAY = 17000;
+
 Dispatch_Controller::Dispatch_Controller()
 : rtd_handler(Rtd_Handler()),
   can_node_handler(Can_Node_Handler()),
@@ -63,7 +65,8 @@ bool blinkDashLight(Task*) {
   }
   return false;
 }
-DelayRun requestBlinkDashLight(100, blinkDashLight);
+// Wait to blink light until precharge has finished
+DelayRun requestBlinkDashLight(PRECHARGE_DELAY, blinkDashLight);
 
 void Dispatch_Controller::requestMotorHeartbeat() {
   bool bothMcOn =

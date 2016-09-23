@@ -18,8 +18,9 @@ void Rtd_Handler::handleMessage(Frame& frame) {
   else {
     bool brakePressed = Store().readAnalogBrake() >= BRAKE_PUSHED_CUTOFF;
     bool isEnableMessage = frame.body[0];
+    bool hasFault = Store().readHasFault();
     if (isEnableMessage) {
-      if (brakePressed) {
+      if (brakePressed && !hasFault) {
         // Legal enable
         Dispatcher().enable();
       }

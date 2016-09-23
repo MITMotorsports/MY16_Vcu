@@ -103,7 +103,8 @@ void Motor_Handler::handleSpeedMessage(Frame& message) {
 void Motor_Handler::handleTorqueMessage(Frame& message) {
   int16_t signed_torque = mergeBytesOfSignedInt(message.body[1], message.body[2]);
   int16_t torque = makePositive(signed_torque);
-  Store().logMotorTorqueCommand(message.id == RIGHT_MOTOR_ID ? Store_Controller::RightMotor : Store_Controller::LeftMotor, torque);
+  Motor motor = Store().toMotor(message.id);
+  Store().logMotorTorqueCommand(motor, torque);
 }
 
 int Motor_Handler::motor_rpm_to_wheel_rpm(const int motor_rev_per_min) {
