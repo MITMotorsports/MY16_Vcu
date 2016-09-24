@@ -21,6 +21,7 @@ Dispatch_Controller::Dispatch_Controller()
   can_node_handler(Can_Node_Handler()),
   bms_handler(Bms_Handler()),
   motor_handler(Motor_Handler()),
+  current_sense_handler(Current_Sense_Handler()),
   begun(false),
   enabled(false)
 {
@@ -185,6 +186,7 @@ void Dispatch_Controller::dispatch() {
     bms_handler.handleMessage(frame);
     can_node_handler.handleMessage(frame);
     motor_handler.handleMessage(frame);
+    current_sense_handler.handleMessage(frame);
   }
 }
 

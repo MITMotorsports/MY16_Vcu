@@ -4,10 +4,16 @@
 const int CAN_NODE_ID = 1; //0x001
 const int DASH_ID = 2; //0x002
 const int VCU_ID = 3; //0x003
+
 const int RIGHT_MOTOR_ID = 485; //0x1e5
 const int LEFT_MOTOR_ID = 486; //0x1e6
 const int RIGHT_MOTOR_REQUEST_ID = 592; //0x250
 const int LEFT_MOTOR_REQUEST_ID = 593; //0x251
+
+const int CS_CURRENT_ID = 1313; //0x521
+const int CS_VOLTAGE_ID = 1314; //0x522
+const int CS_POWER_ID = 1317; //0x525
+
 const int BMS_SUMMARY_ID = 1536; //0x600
 const int BMS_FAULT_ID = 1570; //0x622
 const int BMS_VOLTAGE_ID = 1571; //0x623

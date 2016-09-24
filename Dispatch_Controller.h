@@ -5,6 +5,7 @@
 #include "Can_Node_Handler.h"
 #include "Bms_Handler.h"
 #include "Motor_Handler.h"
+#include "Current_Sense_Handler.h"
 
 class Dispatch_Controller {
   public:
@@ -27,6 +28,7 @@ class Dispatch_Controller {
     Can_Node_Handler can_node_handler;
     Bms_Handler bms_handler;
     Motor_Handler motor_handler;
+    Current_Sense_Handler current_sense_handler;
     bool begun;
     bool enabled;
 };
