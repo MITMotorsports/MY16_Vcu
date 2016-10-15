@@ -234,6 +234,13 @@ int16_t Store_Controller::readMotorRpm(Motor controller) {
   return motorRpm[controller];
 }
 
+void Store_Controller::logMotorCurrent(Motor dir, int16_t current) {
+  String motor_name = (dir == RightMotor) ? "right" : "left";
+  if (Dispatcher().isEnabled()) {
+    Onboard().logFour("motor_current", motor_name, current, "motor_units");
+  }
+}
+
 Motor Store_Controller::toMotor(uint16_t id) {
   return id == RIGHT_MOTOR_ID ? RightMotor : LeftMotor;
 }
