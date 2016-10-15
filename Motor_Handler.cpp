@@ -103,8 +103,6 @@ void Motor_Handler::handleErrorMessage(Frame& message) {
   Store().logMotorWarnings(motor, warning_string);
 }
 
-
-
 void Motor_Handler::handleSpeedMessage(Frame& message) {
   Motor motor = Store().toMotor(message.id);
   int signed_speed_numeric = makePositive(

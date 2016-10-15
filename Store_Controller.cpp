@@ -106,6 +106,7 @@ void Store_Controller::logMotorResponse(Motor dir) {
 bool Store_Controller::readMotorResponse(Motor dir) {
   return responses[dir];
 }
+
 String motor_faults[16] = {
   "parameter_damaged",
   "igbt_error",
@@ -153,6 +154,7 @@ void Store_Controller::logMotorErrors(Motor dir, uint16_t error_string) {
     CAN().write(error_light_frame);
   }
 }
+
 String motor_warnings[16] = {
   "inconsistent_identification",
   "faulty_RUN_signal",
@@ -183,8 +185,6 @@ void Store_Controller::logMotorWarnings(Motor dir, uint16_t warning_string){
         }
     }
 }
-
-
 
 void Store_Controller::logMotorState(Motor dir, uint32_t state_string){
   String motor_name = (dir == RightMotor) ? "right" : "left";
@@ -222,6 +222,7 @@ void Store_Controller::logMotorState(Motor dir, uint32_t state_string){
     }
   }
 }
+
 void Store_Controller::logMotorTorqueCommand(Motor dir, int16_t torqueCommand) {
   torqueCommands[dir] = torqueCommand;
   String motor_name = (dir == RightMotor) ? "right" : "left";
