@@ -12,9 +12,8 @@ class Motor_Handler : public Handler {
   private:
     void requestPermanentUpdate(uint16_t can_id, uint8_t msg_type, uint8_t time);
     void handleVoltageMessage(Frame& message);
-    void handleSpeedMessage(Frame& message);
     void handleTorqueMessage(Frame& message);
-    void handleWarningMessage(Frame& message);
+    void handleSpeedMessage(Frame& message);
     void handleErrorMessage(Frame& message);
     void handleStateMessage(Frame& message);
     int motor_speed_to_motor_rpm(const int motor_speed);

@@ -159,9 +159,9 @@ String motor_warnings[16] = {
   "inactive_RFE",
   "should_never_happen",
   "should_never_happen",
-  "missing_or_low_vower_voltage",
+  "missing_or_low_power_voltage",
   "Motor_temp>87%",
-  "Device_team>87%",
+  "Device_temp>87%",
   "OverVoltage>1.5xUN",
   "2x_over_current",
   "should_never_happen",
@@ -169,7 +169,7 @@ String motor_warnings[16] = {
   "Overload>87%",
   "should_never_happen",
   "should_never_happen",
-  "Ballast_circuit_overload>87%" 
+  "Ballast_circuit_overload>87%"
 };
 void Store_Controller::logMotorWarnings(Motor dir, uint16_t warning_string){
     String motor_name = (dir == RightMotor) ? "right" : "left";
@@ -190,28 +190,34 @@ void Store_Controller::logMotorState(Motor dir, uint32_t state_string){
   String motor_name = (dir == RightMotor) ? "right" : "left";
   for(int i = 0; i < 32; i++) {
     if(bitRead(state_string, i)){
-      String state_name="";
-      if(i==5){
-        state_name = "current_limited_contin";
+      String state_name = "";
+      if(i == 5){
+        // Current limited to continuous level
+        state_name = "current_lim_contin";
       }
-      else if(i==21){
+      else if(i == 21){
+        // Actual current limit reached
         state_name = "current_lim_reached";
       }
-      else if(i==22){
-        state_name = "current_limiting_spd";
+      else if(i == 22){
+        // Current limiting via speed
+        state_name = "current_lim_spd";
       }
-      else if(i==23){
-        state_name = "current_limiting_temp";
+      else if(i == 23){
+        // Current limiting via output stage temp
+        state_name = "current_lim_igbt_temp";
       }
-      else if(i==24){
-        state_name = "current_reduc_contin_temp";
+      else if(i == 24){
+        // Current reduced to continuous current via output stage temp
+        state_name = "current_reduc_contin_igbt";
       }
-      else if(i==26){
-        state_name = "current_limiting_motor_temp";
+      else if(i == 26){
+        // Current limiting due to motor overtemp
+        state_name = "current_lim_motor_temp";
       }
-      if(state_name!=""){
-        Xbee().logThree("motor_state", motor_name, state_name);
+      if(state_name != ""){
         Onboard().logThree("motor_state", motor_name, state_name);
+        Computer().logThree("motor_state", motor_name, state_name);
       }
     }
   }

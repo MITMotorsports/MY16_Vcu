@@ -33,10 +33,10 @@ void Motor_Handler::requestPermanentUpdates(uint16_t can_id) {
   requestPermanentUpdate(can_id, MOTOR_TORQUE_MODIFIER, 101);
   requestPermanentUpdate(can_id, MOTOR_SPEED_MODIFIER, 103);
   requestPermanentUpdate(can_id, MOTOR_ERRORS_MODIFIER, 105);
+  requestPermanentUpdate(can_id, MOTOR_STATE_MODIFIER, 107);
   // Temp is less important
   requestPermanentUpdate(can_id, MOTOR_TEMP_MODIFIER, 255);
   // requestPermanentUpdate(can_id, MOTOR_POSITION_MODIFIER, 113);
-  requestPermanentUpdate(can_id, MOTOR_STATE_MODIFIER, 107);
 }
 
 void Motor_Handler::requestPermanentUpdate(uint16_t can_id, uint8_t msg_type, uint8_t time) {
@@ -90,7 +90,7 @@ int16_t makePositive(int16_t x) {
 }
 
 void Motor_Handler::handleStateMessage(Frame& message){
-  uint32_t state_string = (message.body[2] << 8) + (message.body[3] << 16) + (message.body[4] << 24) + message.body[1];
+  uint32_t state_string = (message.body[4] << 24) + (message.body[3] << 16) + (message.body[2] << 8) + message.body[1];
   Motor motor = Store().toMotor(message.id);
   Store().logMotorState(motor, state_string);
 }
