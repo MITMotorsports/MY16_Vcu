@@ -106,6 +106,7 @@ void Store_Controller::logMotorResponse(Motor dir) {
 bool Store_Controller::readMotorResponse(Motor dir) {
   return responses[dir];
 }
+
 String motor_faults[16] = {
   "parameter_damaged",
   "igbt_error",
@@ -134,8 +135,6 @@ void Store_Controller::logMotorErrors(Motor dir, uint16_t error_string) {
       String error_name = motor_faults[i];
       if (error_name != "under_voltage") {
         hasFault = true;
-        // Breaks pattern because error that we want to catch and filter
-        Xbee().logThree("motor_fault", motor_name, error_name);
         Onboard().logThree("motor_fault", motor_name, error_name);
       }
     }
@@ -151,6 +150,65 @@ void Store_Controller::logMotorErrors(Motor dir, uint16_t error_string) {
     uint8_t faultValue = lightState ? 4 : 3;
     Frame error_light_frame = {.id=VCU_ID, .body={faultValue}, .len=1};
     CAN().write(error_light_frame);
+  }
+}
+
+String motor_warnings[16] = {
+  "inconsistent_identification",
+  "faulty_RUN_signal",
+  "inactive_RFE",
+  "should_never_happen",
+  "should_never_happen",
+  "missing_or_low_power_voltage",
+  "Motor_temp>87%",
+  "Device_temp>87%",
+  "OverVoltage>1.5xUN",
+  "2x_over_current",
+  "should_never_happen",
+  "should_never_happen",
+  "Overload>87%",
+  "should_never_happen",
+  "should_never_happen",
+  "Ballast_circuit_overload>87%"
+};
+void Store_Controller::logMotorWarnings(Motor dir, uint16_t warning_string){
+    String motor_name = (dir == RightMotor) ? "right" : "left";
+    for (int i = 0; i < 16; i++) {
+      if (bitRead(warning_string, i)) {
+        String warning_name = motor_warnings[i];
+        Onboard().logThree("motor_warning", motor_name, warning_name);
+        }
+    }
+}
+
+void Store_Controller::logMotorState(Motor dir, uint32_t state_string){
+  String motor_name = (dir == RightMotor) ? "right" : "left";
+  for (int i = 0; i < 32; i++) {
+    if (bitRead(state_string, i)){
+      String state_name = "";
+      if (i == 5) {
+        // Current limited to continuous level
+        state_name = "current_lim_contin";
+      } else if (i == 21) {
+        // Actual current limit reached
+        state_name = "current_lim_reached";
+      } else if (i == 22){
+        // Current limiting via speed
+        state_name = "current_lim_spd";
+      } else if (i == 23){
+        // Current limiting via output stage temp
+        state_name = "current_lim_igbt_temp";
+      } else if (i == 24){
+        // Current reduced to continuous current via output stage temp
+        state_name = "current_reduc_contin_igbt";
+      } else if (i == 26){
+        // Current limiting due to motor overtemp
+        state_name = "current_lim_motor_temp";
+      }
+      if (state_name != ""){
+        Onboard().logThree("motor_state", motor_name, state_name);
+      }
+    }
   }
 }
 
