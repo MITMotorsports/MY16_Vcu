@@ -184,6 +184,36 @@ void Store_Controller::logMotorWarnings(Motor dir, uint16_t warning_string){
     }
 }
 
+
+
+void Store_Controller::logMotorState(Motor dir, uint32_t State_string){
+  String motor_name = (dir == RightMotor) ? "right" : "left";
+    for(int i = 0; i < 32; i++) {
+      if(bitRead(State_string, i)){
+        String state_name="";
+        if(i==5){
+           state_name = "current_limited_contin";
+        }
+        else if(i==21){
+           state_name = "current_lim_reached";
+        }
+        else if(i==22){
+           state_name = "current_limiting_spd";
+        }
+        else if(i==23){
+           state_name = "current_limiting_temp";
+        }
+        else if(i==24){
+           state_name = "current_reduc_contin_temp";
+        }
+        else if(i==26){
+           state_name = "current_limiting_motor_temp";
+        }
+      Xbee().logThree("motor_state", motor_name, state_name);
+      Onboard().logThree("motor_state", motor_name, state_name);
+    }
+  }
+}
 void Store_Controller::logMotorTorqueCommand(Motor dir, int16_t torqueCommand) {
   torqueCommands[dir] = torqueCommand;
   String motor_name = (dir == RightMotor) ? "right" : "left";

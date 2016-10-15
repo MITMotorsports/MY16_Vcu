@@ -15,7 +15,7 @@ const int MOTOR_SPEED_MODIFIER = 48; //0x30
 const int MOTOR_TEMP_MODIFIER = 75; //0x4B
 const int MOTOR_ERRORS_MODIFIER = 143; //0x8F
 const int MOTOR_HEARTBEAT_MODIFIER = 225; //0xE1
-
+const int MOTOR_STATE_MODIFIER = 64; //0x40
 
 void Motor_Handler::begin() {
   // No initialization needed
@@ -36,6 +36,7 @@ void Motor_Handler::requestPermanentUpdates(uint16_t can_id) {
   // Temp is less important
   requestPermanentUpdate(can_id, MOTOR_TEMP_MODIFIER, 255);
   // requestPermanentUpdate(can_id, MOTOR_POSITION_MODIFIER, 113);
+  requestPermanentUpdate(can_id, MOTOR_STATE_MODIFIER, 107);
 }
 
 void Motor_Handler::requestPermanentUpdate(uint16_t can_id, uint8_t msg_type, uint8_t time) {
@@ -72,6 +73,9 @@ void Motor_Handler::handleMessage(Frame& message) {
       break;
     case MOTOR_TORQUE_MODIFIER:
       handleTorqueMessage(message);
+      break;
+    case MOTOR_STATE_MODIFIER:
+      handleStateMessage(message);
       break;  
   }
 }
@@ -85,6 +89,11 @@ int16_t makePositive(int16_t x) {
   }
 }
 
+void Motor_Handler::handleStateMessage(Frame& message){
+  uint32_t State_string = (message.body[2]<<8) + (message.body[3]<<16) + (message.body[4]<<24) + message.body[1];
+  Motor motor = Store().toMotor(message.id);
+  Store().logMotorState(motor, State_string);
+}
 void Motor_Handler::handleErrorMessage(Frame& message) {
   uint16_t error_string = (message.body[2] << 8) + message.body[1];
   uint16_t warning_string = (message.body[4]<<8) + message.body[3];
