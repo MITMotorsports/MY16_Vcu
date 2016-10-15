@@ -38,6 +38,7 @@ class Store_Controller {
     int16_t readMotorTorqueCommand(Motor dir);
     void logMotorRpm(Motor dir, int16_t motor_rpm);
     int16_t readMotorRpm(Motor dir);
+    void logMotorCurrent(Motor dir, int16_t motor_current);
 
     // Convenience methods for enum access
     Motor toMotor(uint16_t id);

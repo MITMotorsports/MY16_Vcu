@@ -11,6 +11,7 @@ const int REQUEST_PREFIX = 61; //0x3D
 const int TORQUE_PREFIX = 144; //0x90
 
 const int MOTOR_TORQUE_MODIFIER = TORQUE_PREFIX;
+const int MOTOR_CURRENT_MODIFIER = 32; //0x20
 const int MOTOR_SPEED_MODIFIER = 48; //0x30
 const int MOTOR_TEMP_MODIFIER = 75; //0x4B
 const int MOTOR_ERRORS_MODIFIER = 143; //0x8F
@@ -34,6 +35,7 @@ void Motor_Handler::requestPermanentUpdates(uint16_t can_id) {
   requestPermanentUpdate(can_id, MOTOR_SPEED_MODIFIER, 103);
   requestPermanentUpdate(can_id, MOTOR_ERRORS_MODIFIER, 105);
   requestPermanentUpdate(can_id, MOTOR_STATE_MODIFIER, 107);
+  requestPermanentUpdate(can_id, MOTOR_CURRENT_MODIFIER, 109);
   // Temp is less important
   requestPermanentUpdate(can_id, MOTOR_TEMP_MODIFIER, 255);
   // requestPermanentUpdate(can_id, MOTOR_POSITION_MODIFIER, 113);
@@ -77,6 +79,9 @@ void Motor_Handler::handleMessage(Frame& message) {
     case MOTOR_STATE_MODIFIER:
       handleStateMessage(message);
       break;
+    case MOTOR_CURRENT_MODIFIER:
+      handleCurrentMessage(message);
+      break;
   }
 }
 
@@ -113,6 +118,14 @@ void Motor_Handler::handleSpeedMessage(Frame& message) {
   Store().logMotorRpm(motor, signed_speed_numeric);
 }
 
+void Motor_Handler::handleCurrentMessage(Frame& message) {
+  Motor motor = Store().toMotor(message.id);
+  int signed_current_numeric = makePositive(
+      mergeBytesOfSignedInt(message.body[1], message.body[2])
+  );
+
+  Store().logMotorCurrent(motor, signed_current_numeric);
+}
 void Motor_Handler::handleTorqueMessage(Frame& message) {
   int16_t signed_torque = mergeBytesOfSignedInt(message.body[1], message.body[2]);
   int16_t torque = makePositive(signed_torque);
