@@ -35,7 +35,7 @@ void Motor_Handler::requestPermanentUpdates(uint16_t can_id) {
   requestPermanentUpdate(can_id, MOTOR_SPEED_MODIFIER, 103);
   requestPermanentUpdate(can_id, MOTOR_ERRORS_MODIFIER, 105);
   requestPermanentUpdate(can_id, MOTOR_STATE_MODIFIER, 107);
-  requestPermanentUpdate(can_id, MOTOR_CURRENT_MODIFIER, 107);
+  requestPermanentUpdate(can_id, MOTOR_CURRENT_MODIFIER, 109);
   // Temp is less important
   requestPermanentUpdate(can_id, MOTOR_TEMP_MODIFIER, 255);
   // requestPermanentUpdate(can_id, MOTOR_POSITION_MODIFIER, 113);
@@ -78,6 +78,9 @@ void Motor_Handler::handleMessage(Frame& message) {
       break;
     case MOTOR_STATE_MODIFIER:
       handleStateMessage(message);
+      break;
+    case MOTOR_CURRENT_MODIFIER:
+      handleCurrentMessage(message);
       break;
   }
 }

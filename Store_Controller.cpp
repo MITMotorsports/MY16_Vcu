@@ -238,6 +238,7 @@ void Store_Controller::logMotorCurrent(Motor dir, int16_t current) {
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
     Onboard().logFour("motor_current", motor_name, current, "motor_units");
+    Computer().logFour("motor_current", motor_name, current, "motor_units");
   }
 }
 
