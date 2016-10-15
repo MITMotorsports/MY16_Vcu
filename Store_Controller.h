@@ -32,7 +32,7 @@ class Store_Controller {
     void logMotorErrors(Motor dir, uint16_t error_string);
     bool readMotorErrors(Motor dir);
     void logMotorWarnings(Motor dir, uint16_t warning_string);
-    void logMotorState(Motor dir, uint32_t State_string);
+    void logMotorState(Motor dir, uint32_t state_string);
     // Motor controller readings
     void logMotorTorqueCommand(Motor dir, int16_t torqueCommand);
     int16_t readMotorTorqueCommand(Motor dir);

@@ -161,7 +161,7 @@ String motor_warnings[16] = {
   "should_never_happen",
   "missing_or_low_vower_voltage",
   "Motor_temp>87%",
-  "Device_teamp>87%",
+  "Device_team>87%",
   "OverVoltage>1.5xUN",
   "2x_over_current",
   "should_never_happen",
@@ -175,42 +175,44 @@ void Store_Controller::logMotorWarnings(Motor dir, uint16_t warning_string){
     String motor_name = (dir == RightMotor) ? "right" : "left";
     bool hasWarning = false;
     for(int i = 0; i < 16; i++) {
-    if (bitRead(warning_string, i)) {
-      String warning_name = motor_warnings[i];
-      hasWarning = true;
-      Xbee().logThree("motor_warning", motor_name, warning_name);
-      Onboard().logThree("motor_warning", motor_name, warning_name);
-      }
+      if (bitRead(warning_string, i)) {
+        String warning_name = motor_warnings[i];
+        hasWarning = true;
+        Xbee().logThree("motor_warning", motor_name, warning_name);
+        Onboard().logThree("motor_warning", motor_name, warning_name);
+        }
     }
 }
 
 
 
-void Store_Controller::logMotorState(Motor dir, uint32_t State_string){
+void Store_Controller::logMotorState(Motor dir, uint32_t state_string){
   String motor_name = (dir == RightMotor) ? "right" : "left";
-    for(int i = 0; i < 32; i++) {
-      if(bitRead(State_string, i)){
-        String state_name="";
-        if(i==5){
-           state_name = "current_limited_contin";
-        }
-        else if(i==21){
-           state_name = "current_lim_reached";
-        }
-        else if(i==22){
-           state_name = "current_limiting_spd";
-        }
-        else if(i==23){
-           state_name = "current_limiting_temp";
-        }
-        else if(i==24){
-           state_name = "current_reduc_contin_temp";
-        }
-        else if(i==26){
-           state_name = "current_limiting_motor_temp";
-        }
-      Xbee().logThree("motor_state", motor_name, state_name);
-      Onboard().logThree("motor_state", motor_name, state_name);
+  for(int i = 0; i < 32; i++) {
+    if(bitRead(state_string, i)){
+      String state_name="";
+      if(i==5){
+        state_name = "current_limited_contin";
+      }
+      else if(i==21){
+        state_name = "current_lim_reached";
+      }
+      else if(i==22){
+        state_name = "current_limiting_spd";
+      }
+      else if(i==23){
+        state_name = "current_limiting_temp";
+      }
+      else if(i==24){
+        state_name = "current_reduc_contin_temp";
+      }
+      else if(i==26){
+        state_name = "current_limiting_motor_temp";
+      }
+      if(state_name!=""){
+        Xbee().logThree("motor_state", motor_name, state_name);
+        Onboard().logThree("motor_state", motor_name, state_name);
+      }
     }
   }
 }

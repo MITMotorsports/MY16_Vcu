@@ -76,7 +76,7 @@ void Motor_Handler::handleMessage(Frame& message) {
       break;
     case MOTOR_STATE_MODIFIER:
       handleStateMessage(message);
-      break;  
+      break;
   }
 }
 
@@ -90,13 +90,14 @@ int16_t makePositive(int16_t x) {
 }
 
 void Motor_Handler::handleStateMessage(Frame& message){
-  uint32_t State_string = (message.body[2]<<8) + (message.body[3]<<16) + (message.body[4]<<24) + message.body[1];
+  uint32_t state_string = (message.body[2] << 8) + (message.body[3] << 16) + (message.body[4] << 24) + message.body[1];
   Motor motor = Store().toMotor(message.id);
-  Store().logMotorState(motor, State_string);
+  Store().logMotorState(motor, state_string);
 }
+
 void Motor_Handler::handleErrorMessage(Frame& message) {
   uint16_t error_string = (message.body[2] << 8) + message.body[1];
-  uint16_t warning_string = (message.body[4]<<8) + message.body[3];
+  uint16_t warning_string = (message.body[4] << 8) + message.body[3];
   Motor motor = Store().toMotor(message.id);
   Store().logMotorErrors(motor, error_string);
   Store().logMotorWarnings(motor, warning_string);
