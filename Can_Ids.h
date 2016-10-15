@@ -12,7 +12,7 @@ const int LEFT_MOTOR_REQUEST_ID = 593; //0x251
 
 const int CS_CURRENT_ID = 1313; //0x521
 const int CS_VOLTAGE_ID = 1314; //0x522
-const int CS_POWER_ID = 1317; //0x525
+const int CS_POWER_ID = 1318; //0x526
 
 const int BMS_SUMMARY_ID = 1536; //0x600
 const int BMS_FAULT_ID = 1570; //0x622

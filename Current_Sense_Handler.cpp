@@ -63,7 +63,6 @@ void Current_Sense_Handler::handleVoltageMessage(Frame& message) {
   voltageReading.bytes[3] = message.body[2];
   int32_t voltage = voltageReading.value;
   Onboard().logFour("cs_voltage", "only", voltage, "mV");
-  Computer().logFour("cs_voltage", "only", voltage, "mV");
 }
 
 void Current_Sense_Handler::handlePowerMessage(Frame& message) {
