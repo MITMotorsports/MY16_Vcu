@@ -153,6 +153,36 @@ void Store_Controller::logMotorErrors(Motor dir, uint16_t error_string) {
     CAN().write(error_light_frame);
   }
 }
+String motor_warnings[16] = {
+  "inconsistent_identification",
+  "faulty_RUN_signal",
+  "inactive_RFE",
+  "should_never_happen",
+  "should_never_happen",
+  "missing_or_low_vower_voltage",
+  "Motor_temp>87%",
+  "Device_teamp>87%",
+  "OverVoltage>1.5xUN",
+  "2x_over_current",
+  "should_never_happen",
+  "should_never_happen",
+  "Overload>87%",
+  "should_never_happen",
+  "should_never_happen",
+  "Ballast_circuit_overload>87%" 
+};
+void Store_Controller::logMotorWarnings(Motor dir, uint16_t warning_string){
+    String motor_name = (dir == RightMotor) ? "right" : "left";
+    bool hasWarning = false;
+    for(int i = 0; i < 16; i++) {
+    if (bitRead(warning_string, i)) {
+      String warning_name = motor_warnings[i];
+      hasWarning = true;
+      Xbee().logThree("motor_warning", motor_name, warning_name);
+      Onboard().logThree("motor_warning", motor_name, warning_name);
+      }
+    }
+}
 
 void Store_Controller::logMotorTorqueCommand(Motor dir, int16_t torqueCommand) {
   torqueCommands[dir] = torqueCommand;

@@ -16,6 +16,7 @@ const int MOTOR_TEMP_MODIFIER = 75; //0x4B
 const int MOTOR_ERRORS_MODIFIER = 143; //0x8F
 const int MOTOR_HEARTBEAT_MODIFIER = 225; //0xE1
 
+
 void Motor_Handler::begin() {
   // No initialization needed
 }
@@ -67,11 +68,11 @@ void Motor_Handler::handleMessage(Frame& message) {
       handleSpeedMessage(message);
       break;
     case MOTOR_ERRORS_MODIFIER:
-      handleWarningMessage(message);
+      handleErrorMessage(message);
       break;
     case MOTOR_TORQUE_MODIFIER:
       handleTorqueMessage(message);
-      break;
+      break;  
   }
 }
 
@@ -84,11 +85,15 @@ int16_t makePositive(int16_t x) {
   }
 }
 
-void Motor_Handler::handleWarningMessage(Frame& message) {
-  uint16_t warning_string = (message.body[2] << 8) + message.body[1];
+void Motor_Handler::handleErrorMessage(Frame& message) {
+  uint16_t error_string = (message.body[2] << 8) + message.body[1];
+  uint16_t warning_string = (message.body[4]<<8) + message.body[3];
   Motor motor = Store().toMotor(message.id);
-  Store().logMotorErrors(motor, warning_string);
+  Store().logMotorErrors(motor, error_string);
+  Store().logMotorWarnings(motor, warning_string);
 }
+
+
 
 void Motor_Handler::handleSpeedMessage(Frame& message) {
   Motor motor = Store().toMotor(message.id);

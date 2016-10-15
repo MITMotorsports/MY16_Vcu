@@ -31,6 +31,7 @@ class Store_Controller {
     bool readMotorResponse(Motor dir);
     void logMotorErrors(Motor dir, uint16_t error_string);
     bool readMotorErrors(Motor dir);
+    void logMotorWarnings(Motor dir, uint16_t warning_string);
 
     // Motor controller readings
     void logMotorTorqueCommand(Motor dir, int16_t torqueCommand);
