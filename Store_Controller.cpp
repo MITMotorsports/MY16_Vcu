@@ -177,7 +177,7 @@ void Store_Controller::logMotorWarnings(Motor dir, uint16_t warning_string){
       if (bitRead(warning_string, i)) {
         String warning_name = motor_warnings[i];
         Onboard().logThree("motor_warning", motor_name, warning_name);
-        }
+      }
     }
 }
 
@@ -201,6 +201,9 @@ void Store_Controller::logMotorState(Motor dir, uint32_t state_string){
       } else if (i == 24){
         // Current reduced to continuous current via output stage temp
         state_name = "current_reduc_contin_igbt";
+      } else if (i == 25) {
+        // Current additionally limited if frequency < 2Hz
+        state_name = "current_lim_freq_2_hz";
       } else if (i == 26){
         // Current limiting due to motor overtemp
         state_name = "current_lim_motor_temp";
@@ -238,7 +241,6 @@ void Store_Controller::logMotorCurrent(Motor dir, int16_t current) {
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
     Onboard().logFour("motor_current", motor_name, current, "motor_units");
-    Computer().logFour("motor_current", motor_name, current, "motor_units");
   }
 }
 
