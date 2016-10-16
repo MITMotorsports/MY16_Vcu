@@ -17,6 +17,9 @@ class Motor_Handler : public Handler {
     void handleErrorMessage(Frame& message);
     void handleStateMessage(Frame& message);
     void handleCurrentMessage(Frame& message);
+    void handleAirTempMessage(Frame& message);
+    void handleIgbtTempMessage(Frame& message);
+    void handleCurrentLimitMessage(Frame& message);
     int motor_speed_to_motor_rpm(const int motor_speed);
     int motor_rpm_to_wheel_rpm(const int motor_speed);
     int wheel_rpm_to_kph(const int wheel_rpm);

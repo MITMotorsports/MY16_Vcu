@@ -192,19 +192,19 @@ void Store_Controller::logMotorState(Motor dir, uint32_t state_string){
       } else if (i == 21) {
         // Actual current limit reached
         state_name = "current_lim_reached";
-      } else if (i == 22){
+      } else if (i == 22) {
         // Current limiting via speed
         state_name = "current_lim_spd";
-      } else if (i == 23){
+      } else if (i == 23) {
         // Current limiting via output stage temp
         state_name = "current_lim_igbt_temp";
-      } else if (i == 24){
+      } else if (i == 24) {
         // Current reduced to continuous current via output stage temp
         state_name = "current_reduc_contin_igbt";
       } else if (i == 25) {
         // Current additionally limited if frequency < 2Hz
         state_name = "current_lim_freq_2_hz";
-      } else if (i == 26){
+      } else if (i == 26) {
         // Current limiting due to motor overtemp
         state_name = "current_lim_motor_temp";
       }
@@ -241,6 +241,25 @@ void Store_Controller::logMotorCurrent(Motor dir, int16_t current) {
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
     Onboard().logFour("motor_current", motor_name, current, "motor_units");
+  }
+}
+
+void Store_Controller::logMotorAirTemp(Motor dir, int16_t temp) {
+  String motor_name = (dir == RightMotor) ? "right" : "left";
+  if (Dispatcher().isEnabled()) {
+    Onboard().logFour("motor_air_temp", motor_name, temp, "motor_units");
+  }
+}
+void Store_Controller::logMotorIgbtTemp(Motor dir, int16_t temp) {
+  String motor_name = (dir == RightMotor) ? "right" : "left";
+  if (Dispatcher().isEnabled()) {
+    Onboard().logFour("motor_igbt_temp", motor_name, temp, "motor_units");
+  }
+}
+void Store_Controller::logMotorCurrentLimit(Motor dir, int16_t limit) {
+  String motor_name = (dir == RightMotor) ? "right" : "left";
+  if (Dispatcher().isEnabled()) {
+    Onboard().logFour("motor_current_limit", motor_name, limit, "motor_units");
   }
 }
 

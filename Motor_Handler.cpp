@@ -10,13 +10,17 @@
 const int REQUEST_PREFIX = 61; //0x3D
 const int TORQUE_PREFIX = 144; //0x90
 
+const int MOTOR_HEARTBEAT_MODIFIER = 225; //0xE1
+
 const int MOTOR_TORQUE_MODIFIER = TORQUE_PREFIX;
 const int MOTOR_CURRENT_MODIFIER = 32; //0x20
 const int MOTOR_SPEED_MODIFIER = 48; //0x30
-const int MOTOR_TEMP_MODIFIER = 75; //0x4B
 const int MOTOR_ERRORS_MODIFIER = 143; //0x8F
-const int MOTOR_HEARTBEAT_MODIFIER = 225; //0xE1
 const int MOTOR_STATE_MODIFIER = 64; //0x40
+
+const int MOTOR_CURRENT_LIMIT_MODIFIER = 72; //0x48
+const int MOTOR_IGBT_TEMP_MODIFIER = 74; //0x4A
+const int MOTOR_AIR_TEMP_MODIFIER = 75; //0x4B
 
 void Motor_Handler::begin() {
   // No initialization needed
@@ -37,8 +41,9 @@ void Motor_Handler::requestPermanentUpdates(uint16_t can_id) {
   requestPermanentUpdate(can_id, MOTOR_STATE_MODIFIER, 107);
   requestPermanentUpdate(can_id, MOTOR_CURRENT_MODIFIER, 109);
   // Temp is less important
-  requestPermanentUpdate(can_id, MOTOR_TEMP_MODIFIER, 255);
-  // requestPermanentUpdate(can_id, MOTOR_POSITION_MODIFIER, 113);
+  requestPermanentUpdate(can_id, MOTOR_AIR_TEMP_MODIFIER, 255);
+  requestPermanentUpdate(can_id, MOTOR_IGBT_TEMP_MODIFIER, 253);
+  requestPermanentUpdate(can_id, MOTOR_CURRENT_LIMIT_MODIFIER, 251);
 }
 
 void Motor_Handler::requestPermanentUpdate(uint16_t can_id, uint8_t msg_type, uint8_t time) {
@@ -81,6 +86,15 @@ void Motor_Handler::handleMessage(Frame& message) {
       break;
     case MOTOR_CURRENT_MODIFIER:
       handleCurrentMessage(message);
+      break;
+    case MOTOR_IGBT_TEMP_MODIFIER:
+      handleIgbtTempMessage(message);
+      break;
+    case MOTOR_AIR_TEMP_MODIFIER:
+      handleAirTempMessage(message);
+      break;
+    case MOTOR_CURRENT_LIMIT_MODIFIER:
+      handleCurrentLimitMessage(message);
       break;
   }
 }
@@ -132,6 +146,28 @@ void Motor_Handler::handleTorqueMessage(Frame& message) {
   Motor motor = Store().toMotor(message.id);
   Store().logMotorTorqueCommand(motor, torque);
 }
+
+void Motor_Handler::handleAirTempMessage(Frame& message) {
+  int16_t signed_temp = mergeBytesOfSignedInt(message.body[1], message.body[2]);
+  int16_t temp = makePositive(signed_temp);
+  Motor motor = Store().toMotor(message.id);
+  Store().logMotorAirTemp(motor, temp);
+}
+
+void Motor_Handler::handleIgbtTempMessage(Frame& message) {
+  int16_t signed_temp = mergeBytesOfSignedInt(message.body[1], message.body[2]);
+  int16_t temp = makePositive(signed_temp);
+  Motor motor = Store().toMotor(message.id);
+  Store().logMotorIgbtTemp(motor, temp);
+}
+
+void Motor_Handler::handleCurrentLimitMessage(Frame& message) {
+  int16_t signed_limit = mergeBytesOfSignedInt(message.body[1], message.body[2]);
+  int16_t limit = makePositive(signed_limit);
+  Motor motor = Store().toMotor(message.id);
+  Store().logMotorCurrentLimit(motor, limit);
+}
+
 
 int Motor_Handler::motor_rpm_to_wheel_rpm(const int motor_rev_per_min) {
   const float WHEEL_REVS_PER_MOTOR_REV = 1.0 / 2.64;
