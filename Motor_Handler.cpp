@@ -6,6 +6,19 @@
 #include "Store_Controller.h"
 
 #include "Pins.h"
+#include "Logger.h"
+
+/**
+ * VERY IMPORTANT
+ * Using a 32 bit union is the ONLY reliable way I have found
+ * for unpacking > 2 bit CAN messages.
+ * Please do not try anything else - you WILL lose your high-order bits.
+ **/
+union Reading
+{
+   uint32_t value;
+   uint8_t bytes[4];
+};
 
 const int REQUEST_PREFIX = 61; //0x3D
 const int TORQUE_PREFIX = 144; //0x90
@@ -41,7 +54,7 @@ void Motor_Handler::requestPermanentUpdates(uint16_t can_id) {
   requestPermanentUpdate(can_id, MOTOR_STATE_MODIFIER, 107);
   requestPermanentUpdate(can_id, MOTOR_CURRENT_MODIFIER, 109);
   // Temp is less important
-  requestPermanentUpdate(can_id, MOTOR_AIR_TEMP_MODIFIER, 255);
+  requestPermanentUpdate(can_id, MOTOR_AIR_TEMP_MODIFIER, 254);
   requestPermanentUpdate(can_id, MOTOR_IGBT_TEMP_MODIFIER, 253);
   requestPermanentUpdate(can_id, MOTOR_CURRENT_LIMIT_MODIFIER, 251);
 }
@@ -109,7 +122,13 @@ int16_t makePositive(int16_t x) {
 }
 
 void Motor_Handler::handleStateMessage(Frame& message){
-  uint32_t state_string = (message.body[4] << 24) + (message.body[3] << 16) + (message.body[2] << 8) + message.body[1];
+  Reading currentReading;
+  currentReading.bytes[3] = message.body[4];
+  currentReading.bytes[2] = message.body[3];
+  currentReading.bytes[1] = message.body[2];
+  currentReading.bytes[0] = message.body[1];
+  uint32_t state_string = currentReading.value;
+
   Motor motor = Store().toMotor(message.id);
   Store().logMotorState(motor, state_string);
 }

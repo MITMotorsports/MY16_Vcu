@@ -52,7 +52,6 @@ void Current_Sense_Handler::handleCurrentMessage(Frame& message) {
   currentReading.bytes[3] = message.body[2];
   int32_t current = currentReading.value;
   Onboard().logFour("cs_current", "only", current, "mA");
-  Computer().logFour("cs_current", "only", current, "mA");
 }
 
 void Current_Sense_Handler::handleVoltageMessage(Frame& message) {
@@ -73,6 +72,5 @@ void Current_Sense_Handler::handlePowerMessage(Frame& message) {
   powerReading.bytes[3] = message.body[2];
   int32_t power = powerReading.value;
   Onboard().logFour("cs_power", "only", power, "W");
-  Computer().logFour("cs_power", "only", power, "W");
 
 }

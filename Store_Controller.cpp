@@ -181,36 +181,48 @@ void Store_Controller::logMotorWarnings(Motor dir, uint16_t warning_string){
     }
 }
 
+String motor_states[32] = {
+  "hardware_enable",
+  "speed_cmd_zero",
+  "lim_plus",
+  "lim_minus",
+  "drive_ok",
+  "curr_lim_cont",
+  "speed_lim_torque_mode",
+  "pos_control_ok",
+  "speed_control_ok",
+  "speed_near_zero",
+  "ref_switch_tripped",
+  "calib_active",
+  "calib_done",
+  "pos_within_tol",
+  "drive_ready",
+  "de_energized_brake",
+  "speed_inverted",
+  "speed_lim_ok",
+  "pos_speed_lim_ok",
+  "neg_speed_lim_ok",
+  "curr_lim_dig",
+  "curr_lim_actual",
+  "curr_lim_speed",
+  "curr_lim_igbt_temp",
+  "curr_lim_cont_igbt_temp",
+  "curr_lim_freq",
+  "curr_lim_motor_temp",
+  "curr_derate_analog",
+  "curr_at_peak",
+  "rfe_pulse",
+  "should_never_happen",
+  "hand_wheel_input"
+
+};
 void Store_Controller::logMotorState(Motor dir, uint32_t state_string){
   String motor_name = (dir == RightMotor) ? "right" : "left";
   for (int i = 0; i < 32; i++) {
     if (bitRead(state_string, i)){
-      String state_name = "";
-      if (i == 5) {
-        // Current limited to continuous level
-        state_name = "current_lim_contin";
-      } else if (i == 21) {
-        // Actual current limit reached
-        state_name = "current_lim_reached";
-      } else if (i == 22) {
-        // Current limiting via speed
-        state_name = "current_lim_spd";
-      } else if (i == 23) {
-        // Current limiting via output stage temp
-        state_name = "current_lim_igbt_temp";
-      } else if (i == 24) {
-        // Current reduced to continuous current via output stage temp
-        state_name = "current_reduc_contin_igbt";
-      } else if (i == 25) {
-        // Current additionally limited if frequency < 2Hz
-        state_name = "current_lim_freq_2_hz";
-      } else if (i == 26) {
-        // Current limiting due to motor overtemp
-        state_name = "current_lim_motor_temp";
-      }
-      if (state_name != ""){
-        Onboard().logThree("motor_state", motor_name, state_name);
-      }
+      String state_name = motor_states[i];
+      Onboard().logThree("motor_state", motor_name, state_name);
+      // Computer().logThree("motor_state", motor_name, state_name);
     }
   }
 }
