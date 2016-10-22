@@ -51,12 +51,12 @@ void Motor_Handler::requestPermanentUpdates(uint16_t can_id) {
   requestPermanentUpdate(can_id, MOTOR_TORQUE_MODIFIER, 101);
   requestPermanentUpdate(can_id, MOTOR_SPEED_MODIFIER, 103);
   requestPermanentUpdate(can_id, MOTOR_ERRORS_MODIFIER, 105);
-  requestPermanentUpdate(can_id, MOTOR_STATE_MODIFIER, 107);
   requestPermanentUpdate(can_id, MOTOR_CURRENT_MODIFIER, 109);
   // Temp is less important
   requestPermanentUpdate(can_id, MOTOR_AIR_TEMP_MODIFIER, 254);
   requestPermanentUpdate(can_id, MOTOR_IGBT_TEMP_MODIFIER, 253);
   requestPermanentUpdate(can_id, MOTOR_CURRENT_LIMIT_MODIFIER, 251);
+  requestPermanentUpdate(can_id, MOTOR_STATE_MODIFIER, 249);
 }
 
 void Motor_Handler::requestPermanentUpdate(uint16_t can_id, uint8_t msg_type, uint8_t time) {

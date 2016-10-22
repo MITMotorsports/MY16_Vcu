@@ -218,13 +218,13 @@ String motor_states[32] = {
 };
 void Store_Controller::logMotorState(Motor dir, uint32_t state_string){
   String motor_name = (dir == RightMotor) ? "right" : "left";
+  String motor_message = "";
   for (int i = 0; i < 32; i++) {
     if (bitRead(state_string, i)){
-      String state_name = motor_states[i];
-      Onboard().logThree("motor_state", motor_name, state_name);
-      // Computer().logThree("motor_state", motor_name, state_name);
+      motor_message += motor_states[i] + ", ";
     }
   }
+  Onboard().logThree("motor_state", motor_name, motor_message);
 }
 
 void Store_Controller::logMotorTorqueCommand(Motor dir, int16_t torqueCommand) {
