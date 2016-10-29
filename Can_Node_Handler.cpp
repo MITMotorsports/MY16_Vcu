@@ -53,12 +53,7 @@ void Can_Node_Handler::handleMessage(Frame& message) {
     brakeLightOff();
   } else {
     brakeLightOn();
-    if(Dispatcher().isEnabled()){
-      const int16_t brakeExtended = analogBrake << 7;
-      //Do Scaling 
-      const int16_t outputBrake = brakeExtended;
-      writeThrottleMessages(-outputBrake);
-    } 
+    
   }
 
   // Log analog sensors
@@ -84,20 +79,23 @@ void Can_Node_Handler::handleMessage(Frame& message) {
   int16_t raw_RPM = Store().readMotorRpm(0);
   int actual_motor_RPM = raw_RPM/4000; 
   int wheel_RPM = actual_motor_RPM*2.17;//using gear ratio to convert Motor RPM to Wheel RPM
+
+  // Change from [0:255] to [0:32767]
+  const int16_t throttleExtended = analogThrottle << 7;
+
+  // Apply scaling factor and round
+  const float throttleScaled = ((float)throttleExtended) * THROTTLE_SCALING_FACTOR;
+  const int16_t outputTorque = (int16_t) (round(throttleScaled));
+
   if(analogThrottle>50){
-    // Change from [0:255] to [0:32767]
-    const int16_t throttleExtended = analogThrottle << 7;
-
-    // Apply scaling factor and round
-    const float throttleScaled = ((float)throttleExtended) * THROTTLE_SCALING_FACTOR;
-    const int16_t outputTorque = (int16_t) (round(throttleScaled));
-
     // Write torque commands
     writeThrottleMessages(outputTorque);
   }
   else if(wheel_RPM>2500){ 
-   
       writeThrottleMessages(-50);//Test Brake value when throttle unpressed
+  }
+  else{
+    writeThrottleMessages(outputTorque);
   }
 }
 
