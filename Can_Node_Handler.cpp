@@ -12,6 +12,7 @@ const float THROTTLE_SCALING_FACTOR = 0.7;
 
 const uint8_t TORQUE_PREFIX = 144; //0x90
 
+enum braking_type{None, Coasting, Active};
 void Can_Node_Handler::brakeLightOn() {
   digitalWrite(BRAKE_LIGHT_PIN, HIGH);
 }
@@ -75,10 +76,10 @@ void Can_Node_Handler::handleMessage(Frame& message) {
     writeThrottleMessages(0);
     return;
   }
-  
-  int16_t raw_RPM = Store().readMotorRpm(0);
+
+  int16_t raw_RPM = Store().readMotorRpm(STARBOARD_THROTTLE_IDX);
   int actual_motor_RPM = raw_RPM/4000; 
-  int wheel_RPM = actual_motor_RPM*2.17;//using gear ratio to convert Motor RPM to Wheel RPM
+  float wheel_RPM = actual_motor_RPM*2.17;//using gear ratio to convert Motor RPM to Wheel RPM
 
   // Change from [0:255] to [0:32767]
   const int16_t throttleExtended = analogThrottle << 7;
@@ -91,8 +92,11 @@ void Can_Node_Handler::handleMessage(Frame& message) {
     // Write torque commands
     writeThrottleMessages(outputTorque);
   }
-  else if(wheel_RPM>2500){ 
-      writeThrottleMessages(-50);//Test Brake value when throttle unpressed
+  else if(wheel_RPM>2500&&analogBrake>100){ 
+      writeThrottleMessages(-analogBrake);//need to scale braking value 
+  }
+  else if(wheel_RPM>2500){
+    writeThrottleMessages(-50);
   }
   else{
     writeThrottleMessages(outputTorque);
