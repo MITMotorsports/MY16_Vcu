@@ -17,6 +17,7 @@ class Can_Node_Handler : public Handler {
     void regenMotors(uint8_t throttle);
     void driveMotors(uint8_t throttle);
     void writeThrottleMessages(const int16_t throttle);
+    void writeBrakeMessages(const int16_t brake);
 
     bool isPlausible(uint8_t max, uint8_t min);
 };

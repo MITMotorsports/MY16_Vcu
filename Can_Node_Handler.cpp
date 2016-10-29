@@ -53,6 +53,10 @@ void Can_Node_Handler::handleMessage(Frame& message) {
     brakeLightOff();
   } else {
     brakeLightOn();
+    const int16_t brakeExtended = analogBrake << 7;
+    //Do Scaling 
+    const int16_t outputBrake = brakeExtended;
+    writeBrakeMessages(outputBrake);
   }
 
   // Log analog sensors
@@ -85,6 +89,13 @@ void Can_Node_Handler::handleMessage(Frame& message) {
 
   // Write torque commands
   writeThrottleMessages(outputTorque);
+
+  int16_t raw_RPM = Store().readMotorRpm(0);
+  int actual_motor_RPM = raw_RPM/4000; 
+  int wheel_RPM = actual_motor_RPM*2.17;//using gear ratio to convert Motor RPM to Wheel RPM
+  if(wheel_RPM>2500 && analogThrottle<50){
+    writeBrakeMessages(50);//Test Brake value when throttle unpressed
+  }
 }
 
 bool Can_Node_Handler::isPlausible(uint8_t x, uint8_t y) {
@@ -151,6 +162,30 @@ void Can_Node_Handler::writeThrottleMessages(const int16_t throttle) {
       TORQUE_PREFIX,
       lowByte(neg_throttle),
       highByte(neg_throttle)
+    },
+    .len=3
+  };
+  CAN().write(rightFrame);
+}
+void Can_Node_Handler::writeBrakeMessages(const int16_t brake){
+   int16_t neg_brake = -brake;
+   Frame leftFrame = {
+    .id=LEFT_MOTOR_REQUEST_ID,
+    .body={
+      TORQUE_PREFIX,
+      lowByte(neg_brake),
+      highByte(neg_brake)
+    },
+    .len=3
+  };
+  CAN().write(leftFrame);
+
+  Frame rightFrame = {
+    .id=RIGHT_MOTOR_REQUEST_ID,
+    .body={
+      TORQUE_PREFIX,
+      lowByte(brake),
+      highByte(brake)
     },
     .len=3
   };
