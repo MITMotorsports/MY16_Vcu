@@ -53,7 +53,6 @@ void Can_Node_Handler::handleMessage(Frame& message) {
     brakeLightOff();
   } else {
     brakeLightOn();
-    
   }
 
   // Log analog sensors
@@ -76,6 +75,7 @@ void Can_Node_Handler::handleMessage(Frame& message) {
     writeThrottleMessages(0);
     return;
   }
+  
   int16_t raw_RPM = Store().readMotorRpm(0);
   int actual_motor_RPM = raw_RPM/4000; 
   int wheel_RPM = actual_motor_RPM*2.17;//using gear ratio to convert Motor RPM to Wheel RPM
