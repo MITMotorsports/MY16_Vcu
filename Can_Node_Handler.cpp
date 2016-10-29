@@ -3,12 +3,13 @@
 #include "Dispatch_Controller.h"
 #include "Rtd_Controller.h"
 #include "Store_Controller.h"
+#include "Logger.h"
 
 const int STARBOARD_THROTTLE_IDX = 0;
 const int PORT_THROTTLE_IDX = 1;
 const int BRAKE_IDX = 2;
 
-const uint8_t THROTTLE_SCALING_PERCENTAGE = 70;
+const uint8_t THROTTLE_SCALING_PERCENTAGE = 100;
 
 const uint8_t TORQUE_PREFIX = 144; //0x90
 
@@ -85,6 +86,7 @@ void Can_Node_Handler::handleMessage(Frame& message) {
   throttleExtended = throttleExtended / 100;
   // Apply scaling factor and round
   const int16_t outputTorque = (int16_t) throttleExtended;
+  Computer().logOne(outputTorque);
 
   // Write torque commands
   writeThrottleMessages(outputTorque);
