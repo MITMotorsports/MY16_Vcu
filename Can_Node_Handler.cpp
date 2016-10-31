@@ -3,12 +3,13 @@
 #include "Dispatch_Controller.h"
 #include "Rtd_Controller.h"
 #include "Store_Controller.h"
+#include "Logger.h"
 
 const int STARBOARD_THROTTLE_IDX = 0;
 const int PORT_THROTTLE_IDX = 1;
 const int BRAKE_IDX = 2;
 
-const float THROTTLE_SCALING_FACTOR = 0.7;
+const uint8_t THROTTLE_SCALING_PERCENTAGE = 100;
 
 const uint8_t TORQUE_PREFIX = 144; //0x90
 
@@ -77,11 +78,15 @@ void Can_Node_Handler::handleMessage(Frame& message) {
   }
 
   // Change from [0:255] to [0:32767]
-  const int16_t throttleExtended = analogThrottle << 7;
+  uint32_t throttleExtended = analogThrottle << 7;
 
+  // We scale by multiplying by the numerator and then dividing by 100 (aka the denominator)
+  //     where the numerator is the percentage from [0:100] that you want the torque to be scaled to.
+  throttleExtended = throttleExtended * THROTTLE_SCALING_PERCENTAGE;
+  throttleExtended = throttleExtended / 100;
   // Apply scaling factor and round
-  const float throttleScaled = ((float)throttleExtended) * THROTTLE_SCALING_FACTOR;
-  const int16_t outputTorque = (int16_t) (round(throttleScaled));
+  const int16_t outputTorque = (int16_t) throttleExtended;
+  Computer().logOne(outputTorque);
 
   // Write torque commands
   writeThrottleMessages(outputTorque);
