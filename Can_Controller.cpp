@@ -36,6 +36,7 @@ void Can_Controller::begin() {
   uint8_t response = delegate.begin(CAN_500KBPS);
   if (delegate.begin(CAN_500KBPS) != CAN_OK) {
     Computer().logTwo("CAN_begin_error", canResponseToString(response));
+    Onboard().logTwo("CAN_begin_error", canResponseToString(response));
   }
 }
 
@@ -48,6 +49,7 @@ Frame Can_Controller::read() {
   uint8_t response = delegate.readMsgBuf(&frame.len, frame.body);
   if (response != CAN_OK) {
     Computer().logTwo("CAN_read_error", canResponseToString(response));
+    Onboard().logTwo("CAN_read_error", canResponseToString(response));
   }
   frame.id = delegate.getCanId();
   return frame;
@@ -92,5 +94,6 @@ void Can_Controller::write(Frame f) {
   uint8_t response = delegate.sendMsgBuf(f.id, 0, f.len, f.body);
   if (response != CAN_OK) {
     Computer().logTwo("CAN_write_error", canResponseToString(response));
+    Onboard().logTwo("CAN_write_error", canResponseToString(response));
   }
 }
