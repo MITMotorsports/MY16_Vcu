@@ -106,7 +106,7 @@ bool Can_Node_Handler::brakeThrottleConflict(uint8_t analogThrottle, uint8_t ana
     // We recently triggered a conflict: stay in conflict mode
     // unless throttle below 5%
 
-    bool throttleReleased = analogThrottle < (255 * 0.05);
+    bool throttleReleased = analogThrottle < 13;
 
     if (throttleReleased) {
       // Remove conflict and log that it's cleared
@@ -121,8 +121,10 @@ bool Can_Node_Handler::brakeThrottleConflict(uint8_t analogThrottle, uint8_t ana
     // We are not in conflict mode: only trigger conflict if
     // throttle above 25% and brake pressed
 
-    bool throttlePushed = analogThrottle >= (255 * 0.05);
-    bool brakePushed = analogBrake >= BRAKE_PUSHED_CUTOFF;
+    bool throttlePushed = analogThrottle >= 64;
+
+    // We raise the threshold for brake to 20% as well to prevent erroneous cutoff
+    bool brakePushed = analogBrake >= 50;
 
     if (throttlePushed && brakePushed) {
       // Add conflict and log that it's added
