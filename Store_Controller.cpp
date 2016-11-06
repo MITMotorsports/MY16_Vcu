@@ -96,6 +96,7 @@ void Store_Controller::logSpeed(const Wheel wheel, const int16_t rpm) {
       //Should never happen
       return;
   }
+  Onboard().logFour("wheel_rpm", wheelName, rpm, "rpm");
 }
 int16_t Store_Controller::readSpeed(const Wheel wheel) {
   return speeds[wheel];

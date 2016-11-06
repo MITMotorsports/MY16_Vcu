@@ -4,6 +4,7 @@
 const int CAN_NODE_ID = 1; //0x001
 const int DASH_ID = 2; //0x002
 const int VCU_ID = 3; //0x003
+const int RPM_ID = 16; //0x010
 
 const int RIGHT_MOTOR_ID = 485; //0x1e5
 const int LEFT_MOTOR_ID = 486; //0x1e6

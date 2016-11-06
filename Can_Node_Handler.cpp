@@ -28,11 +28,24 @@ void Can_Node_Handler::begin() {
 }
 
 void Can_Node_Handler::handleMessage(Frame& message) {
-  // Only execute if id matches
-  if(message.id != CAN_NODE_ID) {
+  // Only execute if id matches something we care about
+  if (message.id == CAN_NODE_ID) {
+    handleCanNodeMessage(message);
+  } else if (message.id == RPM_ID) {
+    handleRpmMessage(message);
+  } else {
     return;
   }
+}
 
+void Can_Node_Handler::handleRpmMessage(Frame& message) {
+  uint16_t starboard_rpm = (message.body[1] << 8) + message.body[0];
+  uint16_t port_rpm = (message.body[3] << 8) + message.body[2];
+  Store().logSpeed(Store().FrontRightWheel, starboard_rpm);
+  Store().logSpeed(Store().FrontLeftWheel, port_rpm);
+}
+
+void Can_Node_Handler::handleCanNodeMessage(Frame& message) {
   // Handle throttle messages
   bool plausible = true;
   uint8_t analogThrottle;

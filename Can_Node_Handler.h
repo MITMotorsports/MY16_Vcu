@@ -7,6 +7,8 @@ class Can_Node_Handler : public Handler {
   public:
     void begin();
     void handleMessage(Frame& message);
+    void handleCanNodeMessage(Frame& message);
+    void handleRpmMessage(Frame& message);
   private:
     void brakeLightOn();
     void brakeLightOff();
