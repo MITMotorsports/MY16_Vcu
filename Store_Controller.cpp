@@ -7,6 +7,8 @@
 const int16_t SENTINAL = -32768;
 const String NO_DIRECTION = "only";
 
+bool verbose = false;
+
 Store_Controller::Store_Controller() 
   // Fault logging
   : hasFault(true)
@@ -224,14 +226,14 @@ void Store_Controller::logMotorState(Motor dir, uint32_t state_string){
       motor_message += motor_states[i] + ", ";
     }
   }
-  Onboard().logThree("motor_state", motor_name, motor_message);
+  // Onboard().logThree("motor_state", motor_name, motor_message);
 }
 
 void Store_Controller::logMotorTorqueCommand(Motor dir, int16_t torqueCommand) {
   torqueCommands[dir] = torqueCommand;
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
-    Onboard().logFour("motor_torque_cmd", motor_name, torqueCommand, "uint16_t");
+    // Onboard().logFour("motor_torque_cmd", motor_name, torqueCommand, "uint16_t");
   }
 }
 int16_t Store_Controller::readMotorTorqueCommand(Motor controller) {
@@ -252,26 +254,30 @@ int16_t Store_Controller::readMotorRpm(Motor controller) {
 void Store_Controller::logMotorCurrent(Motor dir, int16_t current) {
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
-    Onboard().logFour("motor_current", motor_name, current, "motor_units");
+    // Onboard().logFour("motor_current", motor_name, current, "motor_units");
+    (void)current;
   }
 }
 
 void Store_Controller::logMotorAirTemp(Motor dir, int16_t temp) {
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
-    Onboard().logFour("motor_air_temp", motor_name, temp, "motor_units");
+    // Onboard().logFour("motor_air_temp", motor_name, temp, "motor_units");
+    (void)temp;
   }
 }
 void Store_Controller::logMotorIgbtTemp(Motor dir, int16_t temp) {
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
-    Onboard().logFour("motor_igbt_temp", motor_name, temp, "motor_units");
+    // Onboard().logFour("motor_igbt_temp", motor_name, temp, "motor_units");
+    (void)temp;
   }
 }
 void Store_Controller::logMotorCurrentLimit(Motor dir, int16_t limit) {
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
-    Onboard().logFour("motor_current_limit", motor_name, limit, "motor_units");
+    // Onboard().logFour("motor_current_limit", motor_name, limit, "motor_units");
+    (void)limit;
   }
 }
 
@@ -299,8 +305,8 @@ void Store_Controller::logBmsFaults(uint8_t fault_string) {
     if (bitRead(fault_string, i)) {
       String fault_name = bms_faults[i];
       // Breaks pattern because error that we want to catch and filter
-      Xbee().logTwo("bms_fault", fault_name);
-      Onboard().logTwo("bms_fault", fault_name);
+      // Xbee().logTwo("bms_fault", fault_name);
+      // Onboard().logTwo("bms_fault", fault_name);
     }
   }
 }
@@ -320,15 +326,15 @@ void Store_Controller::logBmsWarnings(uint8_t warning_string) {
     if (bitRead(warning_string, i)) {
       String warning_name = bms_warnings[i];
       // Breaks pattern because error that we want to catch and filter
-      Xbee().logTwo("bms_warning", warning_name);
-      Onboard().logTwo("bms_warning", warning_name);
+      // Xbee().logTwo("bms_warning", warning_name);
+      // Onboard().logTwo("bms_warning", warning_name);
     }
   }
 }
 
 void Store_Controller::logBmsTemp(const int16_t _bmsTemp) {
   bmsTemp = _bmsTemp;
-  Onboard().logFour("bms_temp", NO_DIRECTION, bmsTemp, "degrees");
+  // Onboard().logFour("bms_temp", NO_DIRECTION, bmsTemp, "degrees");
 }
 int16_t Store_Controller::readBmsTemp() {
   return bmsTemp;
@@ -336,7 +342,7 @@ int16_t Store_Controller::readBmsTemp() {
 
 void Store_Controller::logBmsVoltage(const int16_t _bmsVoltage) {
   bmsVoltage = _bmsVoltage;
-  Onboard().logFour("bms_voltage", NO_DIRECTION, bmsVoltage, "volts");
+  // Onboard().logFour("bms_voltage", NO_DIRECTION, bmsVoltage, "volts");
 }
 int16_t Store_Controller::readBmsVoltage() {
   return bmsVoltage;
@@ -344,7 +350,7 @@ int16_t Store_Controller::readBmsVoltage() {
 
 void Store_Controller::logBmsSoc(const int16_t _soc) {
   soc = _soc;
-  Onboard().logFour("bms_soc", NO_DIRECTION, soc, "percent");
+  // Onboard().logFour("bms_soc", NO_DIRECTION, soc, "percent");
 }
 int16_t Store_Controller::readBmsSoc() {
   return soc;
