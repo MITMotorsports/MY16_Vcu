@@ -255,7 +255,21 @@ int16_t Store_Controller::readMotorRpm(Motor controller) {
 void Store_Controller::logMotorCurrent(Motor dir, int16_t current) {
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
-    // Onboard().logFour("motor_current", motor_name, current, "motor_units");
+    Onboard().logFour("motor_current", motor_name, current, "motor_units");
+    (void)current;
+  }
+}
+void Store_Controller::logMotorCurrentAfterFilter(Motor dir, int16_t current) {
+  String motor_name = (dir == RightMotor) ? "right" : "left";
+  if (Dispatcher().isEnabled()) {
+    Onboard().logFour("cur_after_filter", motor_name, current, "motor_units");
+    (void)current;
+  }
+}
+void Store_Controller::logMotorCurrentCommand(Motor dir, int16_t current) {
+  String motor_name = (dir == RightMotor) ? "right" : "left";
+  if (Dispatcher().isEnabled()) {
+    Onboard().logFour("cur_command", motor_name, current, "motor_units");
     (void)current;
   }
 }
@@ -277,7 +291,7 @@ void Store_Controller::logMotorIgbtTemp(Motor dir, int16_t temp) {
 void Store_Controller::logMotorCurrentLimit(Motor dir, int16_t limit) {
   String motor_name = (dir == RightMotor) ? "right" : "left";
   if (Dispatcher().isEnabled()) {
-    // Onboard().logFour("motor_current_limit", motor_name, limit, "motor_units");
+    Onboard().logFour("cur_limit", motor_name, limit, "motor_units");
     (void)limit;
   }
 }
@@ -307,7 +321,7 @@ void Store_Controller::logBmsFaults(uint8_t fault_string) {
       String fault_name = bms_faults[i];
       // Breaks pattern because error that we want to catch and filter
       // Xbee().logTwo("bms_fault", fault_name);
-      // Onboard().logTwo("bms_fault", fault_name);
+      Onboard().logTwo("bms_fault", fault_name);
     }
   }
 }

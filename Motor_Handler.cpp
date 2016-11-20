@@ -27,9 +27,11 @@ const int MOTOR_HEARTBEAT_MODIFIER = 225; //0xE1
 
 const int MOTOR_TORQUE_MODIFIER = TORQUE_PREFIX;
 const int MOTOR_CURRENT_MODIFIER = 32; //0x20
+const int MOTOR_CURRENT_AFTER_FILTER_MODIFIER = 95; //0x5f
 const int MOTOR_SPEED_MODIFIER = 48; //0x30
 const int MOTOR_ERRORS_MODIFIER = 143; //0x8F
 const int MOTOR_STATE_MODIFIER = 64; //0x40
+const int MOTOR_CURRENT_COMMAND_MODIFIER = 34; //0x22
 
 const int MOTOR_CURRENT_LIMIT_MODIFIER = 72; //0x48
 const int MOTOR_IGBT_TEMP_MODIFIER = 74; //0x4A
@@ -52,11 +54,13 @@ void Motor_Handler::requestPermanentUpdates(uint16_t can_id) {
   requestPermanentUpdate(can_id, MOTOR_SPEED_MODIFIER, 103);
   requestPermanentUpdate(can_id, MOTOR_ERRORS_MODIFIER, 105);
   requestPermanentUpdate(can_id, MOTOR_CURRENT_MODIFIER, 109);
+  requestPermanentUpdate(can_id, MOTOR_CURRENT_AFTER_FILTER_MODIFIER, 111);
   // Temp is less important
-  requestPermanentUpdate(can_id, MOTOR_AIR_TEMP_MODIFIER, 254);
-  requestPermanentUpdate(can_id, MOTOR_IGBT_TEMP_MODIFIER, 253);
-  requestPermanentUpdate(can_id, MOTOR_CURRENT_LIMIT_MODIFIER, 251);
+  //requestPermanentUpdate(can_id, MOTOR_AIR_TEMP_MODIFIER, 254);
+  //requestPermanentUpdate(can_id, MOTOR_IGBT_TEMP_MODIFIER, 253);
   requestPermanentUpdate(can_id, MOTOR_STATE_MODIFIER, 249);
+  requestPermanentUpdate(can_id, MOTOR_CURRENT_LIMIT_MODIFIER, 251);
+  requestPermanentUpdate(can_id, MOTOR_CURRENT_COMMAND_MODIFIER, 253);
 }
 
 void Motor_Handler::requestPermanentUpdate(uint16_t can_id, uint8_t msg_type, uint8_t time) {
@@ -109,6 +113,12 @@ void Motor_Handler::handleMessage(Frame& message) {
     case MOTOR_CURRENT_LIMIT_MODIFIER:
       handleCurrentLimitMessage(message);
       break;
+    case MOTOR_CURRENT_AFTER_FILTER_MODIFIER:
+      handleCurrentAfterFilterMessage(message);
+      break;
+    case MOTOR_CURRENT_COMMAND_MODIFIER:
+      handleCurrentCommandMessage(message);
+      break;
   }
 }
 
@@ -158,6 +168,22 @@ void Motor_Handler::handleCurrentMessage(Frame& message) {
   );
 
   Store().logMotorCurrent(motor, signed_current_numeric);
+}
+void Motor_Handler::handleCurrentAfterFilterMessage(Frame& message) {
+  Motor motor = Store().toMotor(message.id);
+  int signed_current_numeric = makePositive(
+      mergeBytesOfSignedInt(message.body[1], message.body[2])
+  );
+
+  Store().logMotorCurrentAfterFilter(motor, signed_current_numeric);
+}
+void Motor_Handler::handleCurrentCommandMessage(Frame& message) {
+  Motor motor = Store().toMotor(message.id);
+  int signed_current_numeric = makePositive(
+      mergeBytesOfSignedInt(message.body[1], message.body[2])
+  );
+
+  Store().logMotorCurrentCommand(motor, signed_current_numeric);
 }
 void Motor_Handler::handleTorqueMessage(Frame& message) {
   int16_t signed_torque = mergeBytesOfSignedInt(message.body[1], message.body[2]);

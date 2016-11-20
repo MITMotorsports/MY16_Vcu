@@ -42,6 +42,8 @@ class Store_Controller {
     void logMotorAirTemp(Motor dir, int16_t motor_temp);
     void logMotorIgbtTemp(Motor dir, int16_t motor_temp);
     void logMotorCurrentLimit(Motor dir, int16_t limit);
+    void logMotorCurrentCommand(Motor dir, int16_t limit);
+    void logMotorCurrentAfterFilter(Motor dir, int16_t limit);
 
     // Convenience methods for enum access
     Motor toMotor(uint16_t id);

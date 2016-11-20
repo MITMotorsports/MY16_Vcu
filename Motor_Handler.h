@@ -17,6 +17,8 @@ class Motor_Handler : public Handler {
     void handleErrorMessage(Frame& message);
     void handleStateMessage(Frame& message);
     void handleCurrentMessage(Frame& message);
+    void handleCurrentAfterFilterMessage(Frame& message);
+    void handleCurrentCommandMessage(Frame& message);
     void handleAirTempMessage(Frame& message);
     void handleIgbtTempMessage(Frame& message);
     void handleCurrentLimitMessage(Frame& message);
