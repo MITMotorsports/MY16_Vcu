@@ -166,8 +166,8 @@ void Can_Node_Handler::writeThrottleMessages(const int16_t throttle, uint8_t ana
   right_scale = max(250, min(1750, right_scale));
   left_scale = max(250, min(1750, left_scale));
 
-  uint16_t right_motor_throttle = throttle*right_scale/1000;
-  uint16_t left_motor_throttle = throttle*left_scale/1000;
+  uint16_t right_motor_throttle = max(0xFFFF, throttle*right_scale/1000);
+  uint16_t left_motor_throttle = max(0xFFFF, throttle*left_scale/1000);
 
   Frame leftFrame = {
     .id=LEFT_MOTOR_REQUEST_ID,
