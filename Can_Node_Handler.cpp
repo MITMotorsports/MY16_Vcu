@@ -8,6 +8,7 @@
 const int STARBOARD_THROTTLE_IDX = 0;
 const int PORT_THROTTLE_IDX = 1;
 const int BRAKE_IDX = 2;
+const int STEERING_IDX = 3;
 
 const uint8_t THROTTLE_SCALING_PERCENTAGE = 100;
 
@@ -62,6 +63,7 @@ void Can_Node_Handler::handleCanNodeMessage(Frame& message) {
 
   // Handle brake messages
   uint8_t analogBrake = message.body[BRAKE_IDX];
+  uint8_t analogSteering = message.body[STEERING_IDX];
 
   if(analogBrake < BRAKE_PUSHED_CUTOFF) {
     brakeLightOff();
@@ -152,19 +154,33 @@ bool Can_Node_Handler::brakeThrottleConflict(uint8_t analogThrottle, uint8_t ana
 }
 
 // Right motor spins backwards
-void Can_Node_Handler::writeThrottleMessages(const int16_t throttle) {
+//   steering all right is 0, all left is 255 (https://github.com/MITMotorsports/MY16_Can_Node/blob/master/Can_Node.cpp)
+void Can_Node_Handler::writeThrottleMessages(const int16_t throttle, uint8_t analogSteering) {
+
+  // implements torque vectoring
+  int32_t biased_steering = (int16_t) analogSteering;
+  biased_steering = analogSteering - 128;
+
+  uint32_t right_scale = (1000 + biased_steering*1000/128);
+  uint32_t left_scale = (1000 - biased_steering*1000/128);
+  right_scale = max(250, min(1750, right_scale));
+  left_scale = max(250, min(1750, left_scale));
+
+  uint16_t right_motor_throttle = throttle*right_scale/1000;
+  uint16_t left_motor_throttle = throttle*left_scale/1000;
+
   Frame leftFrame = {
     .id=LEFT_MOTOR_REQUEST_ID,
     .body={
       TORQUE_PREFIX,
-      lowByte(throttle),
-      highByte(throttle)
+      lowByte(left_motor_throttle),
+      highByte(left_motor_throttle)
     },
     .len=3
   };
   CAN().write(leftFrame);
 
-  int16_t neg_throttle = -throttle;
+  int16_t neg_throttle = -right_motor_throttle;
   Frame rightFrame = {
     .id=RIGHT_MOTOR_REQUEST_ID,
     .body={
