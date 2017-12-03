@@ -82,13 +82,13 @@ void Can_Node_Handler::handleCanNodeMessage(Frame& message) {
 
   // Zero torque if implausible
   if (!plausible) {
-    writeThrottleMessages(0);
+    writeThrottleMessages(0, 0);
     return;
   }
 
   // Also zero torque if brake-throttle conflict
   if (brakeThrottleConflict(analogThrottle, analogBrake)) {
-    writeThrottleMessages(0);
+    writeThrottleMessages(0, 0);
     return;
   }
 
@@ -104,7 +104,7 @@ void Can_Node_Handler::handleCanNodeMessage(Frame& message) {
   Computer().logOne(outputTorque);
 
   // Write torque commands
-  writeThrottleMessages(outputTorque);
+  writeThrottleMessages(outputTorque, analogSteering);
 }
 
 bool Can_Node_Handler::isPlausible(uint8_t x, uint8_t y) {
